@@ -5,3 +5,5 @@ CHAOS-MRT2-NORMALIZED/
 *.nii.gz
 
 *.pth
+
+*.pt
