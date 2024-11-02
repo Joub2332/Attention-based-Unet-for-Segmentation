@@ -2,6 +2,12 @@ CHAOS-MRT2/
 
 CHAOS-MRT2-NORMALIZED/
 
+Essais unet simple/
+
+Essais unet aug/
+
+Models unet simple/
+
 *.nii.gz
 
 *.pth
