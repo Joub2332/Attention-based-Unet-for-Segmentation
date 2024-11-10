@@ -6,7 +6,11 @@ Essais unet simple/
 
 Essais unet aug/
 
+EssaisClassiqueV2/
+
 Models unet simple/
+
+modelClassiqueSaves/
 
 *.nii.gz
 
