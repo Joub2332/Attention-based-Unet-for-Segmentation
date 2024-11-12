@@ -12,6 +12,10 @@ Models unet simple/
 
 modelClassiqueSaves/
 
+EssaisClassique2D/
+
+CHAOS-MRT2-2D-NORMALIZED/
+
 *.nii.gz
 
 *.pth
