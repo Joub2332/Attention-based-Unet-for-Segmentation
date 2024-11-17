@@ -52,6 +52,10 @@ The **Attention-based U-Net** enhances the traditional U-Net architecture by inc
 - **Flexible and Efficient** : Maintains the efficiency of U-Net while providing enhanced results in various domains, such as medical and satellite image segmentation.
 
 ## Usage
+### Preparation 
+
+Expliquer coment mettre les fichiers au bon endroit
+
 ### Training 
 This model was trained on an abdominal image database which you can find [here](https://chaos.grand-challenge.org/Data/). However, this model can be trained on another medical or other imaging dataset.
 
