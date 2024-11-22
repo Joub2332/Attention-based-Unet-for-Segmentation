@@ -84,4 +84,5 @@ This project was developed as part of the TAF Deep Learning course led and super
 
 ## Authors
 Skander MAHJOUB, email : skander.mahjoub@imt-atlantique.net
+
 Maria Florenza LAMBERTI,email : maria.florenza-lamberti@imt-atlantique.net
