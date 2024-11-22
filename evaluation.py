@@ -115,7 +115,6 @@ def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
 
     return val_loss, global_dice, dice_scores
 
-
 def plot_confusion_matrix(cm, classes, normalize=False, title='Matrice de Confusion', cmap=plt.cm.Blues):
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
