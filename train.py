@@ -1,6 +1,12 @@
 import argparse
-import nbimporter
-from dataPrepare.ipynb import 
+# Importing libraries 
+import torch
+import numpy as np
+import torch.nn.functional as F
+import torch.nn as nn
+from data import dataLoaderMaking
+from model import UNet2d,UNetAug2D
+
 #Fonction pour lire les arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="Training script")
@@ -12,7 +18,7 @@ def parse_args():
 
 
 # Fonction d'entraînement modifiée
-def training(model, criterion, optimizer, train_loader, val_loader,device,n_epochs):
+def training(model, criterion, optimizer, train_loader, val_loader,device,n_epochs,nameFile):
     numberSamples = len(train_loader.dataset)
     train_losses, valid_losses = [], []
     valid_loss_min = np.inf
@@ -60,7 +66,7 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
         # Sauvegarder le modèle si la perte de validation a diminué
         if valid_loss <= valid_loss_min:
             print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}). Saving model...')
-            torch.save(model.state_dict(), 'modelUnetClassique.pt')
+            torch.save(model.state_dict(), nameFile)
             valid_loss_min = valid_loss
 
     return train_losses, valid_losses
@@ -68,14 +74,102 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
 if __name__ == "__main__":
     args = parse_args()
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # Charger les données
-    data_loader = load_data(args.dataset_path)
+    train_loader,test_loader,val_loader = dataLoaderMaking(namefile=args.dataset_path,target_shape = (256, 256),batch_size = args.batch_size)
 
     # Définir le modèle
-    model = define_model()
+    model_class = UNet2d()
+    model_augm=UNetAug2D()
 
+    class_weights = torch.tensor([1.04, 30.3, 263.1, 158.7, 270.3]).to(device)  # Déplace les poids sur le même device que le modèle
+
+    # Définition de la perte pondérée
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
+
+    # Optimiseur Adam avec un learning rate plus bas
+    optimizer_class = torch.optim.Adam(model_class.parameters(), lr=0.00005)
+    optimizer_augm = torch.optim.Adam(model_augm.parameters(), lr=0.00005)
     # Entraîner le modèle   
 
-    train_losses, valid_losses = training(model, criterion, optimizer, train_loader, val_loader,device)
+    train_losses_class, valid_losses_class = training(model_class, criterion, optimizer_class, train_loader, val_loader,device,args.epochs,"model_classique.pt")
+    train_losses_augm, valid_losses_caugm = training(model_augm, criterion, optimizer_augm, train_loader, val_loader,device,args.epochs,"model_augmenté.pt")
+    
+    # We can add lines of code if we want to use train and valid losses 
 
-# Exécuter l'entraînement
+#a tester dans le unet augmented a la place du training
+"""
+import torchvision.transforms as T
+
+def training_with_all_transforms(model, criterion, optimizer, train_loader, val_loader, device, n_epochs):
+    numberSamples = len(train_loader.dataset)
+    train_losses, valid_losses = [], []
+    valid_loss_min = np.inf
+
+    # Liste de transformations à appliquer
+    transformations = [
+        T.RandomRotation(degrees=15),
+        T.RandomHorizontalFlip(p=1.0),
+        T.RandomVerticalFlip(p=1.0),
+        T.RandomAffine(degrees=0, translate=(0.1, 0.1))
+    ]
+
+    for epoch in range(n_epochs):
+        train_loss, valid_loss = 0, 0
+
+        # Entraînement
+        model.train()
+        for data, label in train_loader:
+            all_augmented_data = []
+            all_augmented_labels = []
+
+            for transform in transformations:
+                for img, lbl in zip(data, label):
+                    # Appliquer la transformation
+                    augmented_img = transform(img)
+                    augmented_lbl = transform(lbl)
+
+                    all_augmented_data.append(augmented_img)
+                    all_augmented_labels.append(augmented_lbl)
+
+            # Convertir en tenseurs
+            augmented_data = torch.stack(all_augmented_data).to(device)
+            augmented_labels = torch.stack(all_augmented_labels).squeeze(1).to(device).long()
+
+            optimizer.zero_grad()
+            output = model(augmented_data)
+
+            loss = criterion(output, augmented_labels)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * augmented_data.size(0)
+
+        # Validation
+        model.eval()
+        for data, label in val_loader:
+            data = data.to(device)
+            label = label.squeeze(1).to(device).long()
+
+            with torch.no_grad():
+                output = model(data)
+            loss = criterion(output, label)
+            valid_loss += loss.item() * data.size(0)
+
+        # Calcul des pertes moyennes
+        train_loss /= len(train_loader.dataset)
+        valid_loss /= len(val_loader.dataset)
+        train_losses.append(train_loss)
+        valid_losses.append(valid_loss)
+
+        print(f'Epoch: {epoch+1} \tTraining Loss: {train_loss:.6f} \tValidation Loss: {valid_loss:.6f}')
+
+        # Sauvegarder le modèle si la perte de validation a diminué
+        if valid_loss <= valid_loss_min:
+            print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}). Saving model...')
+            torch.save(model.state_dict(), 'modelAttentionUNet.pt')
+            valid_loss_min = valid_loss
+
+    return train_losses, valid_losses
+
+    """
