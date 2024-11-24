@@ -76,7 +76,7 @@ here is a table comparing the dice score of the two structures
 | Structure         | Class 0  | Class 1  | Class 2  | Class 3  | Class 4  | Overall Dice Score |
 | ----------------- | -------- | -------- | -------- | -------- | -------- | ------------------ |
 | UNet              | 0.9920   | 0.6117   | 0.4747   | 0.4764   | 0.4907   | 0.6509             |
-| Augmented UNet    |  0.9959 | 0.8403 | 0.5559 | 0.6995 | 0.8670 | 0.7877 |
+| Augmented UNet    |  0.9908 | 0.8290 | 0.6133 | 0.6318 | 0.7015 | 0.7533 |
 
 
 ## Acknowledgements
