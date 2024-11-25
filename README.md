@@ -73,7 +73,7 @@ python evaluation.py --model_path path_of_your_model's_.pt_file --data_dir path_
 ```
 If you have a GPU available : 
 ```
-python evaluation.py --model_path path_of_your_model's_.pt_file --data_dir path_of_your_dataset's_folder --device "cpu" --num_classes 5 --batch_size 8
+python evaluation.py --model_path path_of_your_model's_.pt_file --data_dir path_of_your_dataset's_folder --device "cuda" --num_classes 5 --batch_size 8
 ```
 the path of your dataset's folder has to be the path of your prepared dataset' folder in the case of CHAOS MRT2 dataset.
 
@@ -81,12 +81,12 @@ the path of your dataset's folder has to be the path of your prepared dataset' f
 To run the whole project as a whole, you have two options.
 1. if you have already trained your models, run the following code in your terminal  :
 ```
-python main.py --dataset_path ./data --load_classic path_of_your_classic_model's_.pt_file --load_aug  path_of_your_augmented_model's_.pt_file
+python main.py --dataset_path ./data --load_classic path_of_your_classic_model's_.pt_file --load_aug  path_of_your_augmented_model's_.pt_file --device ("cpu" or "cuda")
 ```
 
 2. Else, run the following code in your terminal :
 ```
-python main.py --dataset_path ./data --train --epochs 50 --batch_size 8
+python main.py --dataset_path ./data --train --epochs 50 --batch_size 8 --device ("cpu" or "cuda")
 ```
 
 ## Results
