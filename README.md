@@ -69,14 +69,25 @@ python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 8
 To evaluate your model on a dataset, use the following script:
 
 ```
-python evaluation.py --model_path "path of your .pt file" --data_dir "path of your dataset's folder" --device "cpu" --num_classes 5 --batch_size 8
+python evaluation.py --model_path path_of_your_model's_.pt_file --data_dir path_of_your_dataset's_folder --device "cpu" --num_classes 5 --batch_size 8
 ```
 If you have a GPU available : 
 ```
-python evaluation.py --model_path "path of your .pt file" --data_dir "path of your dataset's folder" --device "cpu" --num_classes 5 --batch_size 8
+python evaluation.py --model_path path_of_your_model's_.pt_file --data_dir path_of_your_dataset's_folder --device "cpu" --num_classes 5 --batch_size 8
 ```
 the path of your dataset's folder has to be the path of your prepared dataset' folder in the case of CHAOS MRT2 dataset.
-### Visualisation
+
+### Run it all
+To run the whole project as a whole, you have two options.
+1. if you have already trained your models, run the following code in your terminal  :
+```
+python main.py --dataset_path ./data --load_classic path_of_your_classic_model's_.pt_file --load_aug  path_of_your_augmented_model's_.pt_file
+```
+
+2. Else, run the following code in your terminal :
+```
+python main.py --dataset_path ./data --train --epochs 50 --batch_size 8
+```
 
 ## Results
 The performance of the Attention-based U-Net was compared to the standard U-Net version, showing a significant improvement in precision and recall metrics:
