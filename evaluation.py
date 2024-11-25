@@ -1,19 +1,13 @@
 # Importing libraries 
-import os
-import nibabel as nib
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from sklearn.model_selection import train_test_split
-import glob
-import torch.nn.functional as F
 import torch.nn as nn
-from torchsummary import summary
-from torch.utils.data import Dataset, DataLoader
 import random
 import itertools
 from sklearn.metrics import confusion_matrix
 from skimage.segmentation import mark_boundaries
+from data import dataLoaderMaking
 
 
 def evaluation(model, val_loader, criterion, device, num_classes=5):
@@ -62,7 +56,6 @@ def evaluation(model, val_loader, criterion, device, num_classes=5):
     print('Overall pixel-wise accuracy: {:.2f}% ({}/{})'.format(overall_accuracy, total_correct_pixels, total_pixels))
 
     return val_loss, overall_accuracy, class_correct, class_total
-
 
 def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
     val_loss = 0.0
@@ -207,3 +200,46 @@ def display_random_prediction(model, val_loader, device):
     plt.show()
 
 #Faire une fonctionn pour plot les deux models sur un meme masque et pour comparer
+if __name__ == "__main__":
+    import argparse
+
+    # Argument parser
+    parser = argparse.ArgumentParser(description="UNet Model Evaluation Script")
+    parser.add_argument('--model_path', type=str, required=True, help="Path to the trained model (.pth file).")
+    parser.add_argument('--data_dir', type=str, required=True, help="Path to the dataset directory.")
+    parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help="Device to use for evaluation.")
+    parser.add_argument('--num_classes', type=int, default=5, help="Number of classes in the segmentation task.")
+    parser.add_argument('--batch_size', type=int, default=8, help="Batch size for DataLoader.")
+    parser.add_argument('--image_size', type=int, default=128, help="Size to which images should be resized.")
+    parser.add_argument('--criterion', type=str, default="cross_entropy", choices=['cross_entropy'], help="Loss function.")
+    args = parser.parse_args()
+
+    # Device configuration
+    device = torch.device(args.device)
+
+    # Load the model
+    print(f"Loading model from {args.model_path}...")
+    model = torch.load(args.model_path, map_location=device)
+    model = model.to(device)
+
+    # Define loss function
+    if args.criterion == "cross_entropy":
+        criterion = nn.CrossEntropyLoss()
+
+    # Data loading
+    print(f"Loading data from {args.data_dir}...")
+    # Create dataset and DataLoader
+    train_loader,test_loader,val_loader=dataLoaderMaking(namefile=argparse.data_dir,target_shape = (256, 256),batch_size = argparse.batch_size)
+
+    # Perform evaluations
+    print("Evaluating model...")
+    evaluation(model, test_loader, criterion, device, num_classes=args.num_classes)
+
+    print("Evaluating with Dice scores...")
+    evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
+
+    print("Generating confusion matrix...")
+    evaluate_confusion_matrix(model, test_loader, device, num_classes=args.num_classes)
+
+    print("Displaying random predictions...")
+    display_random_prediction(model, test_loader, device)
