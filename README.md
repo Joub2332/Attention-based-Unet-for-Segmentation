@@ -53,20 +53,29 @@ The **Attention-based U-Net** enhances the traditional U-Net architecture by inc
 
 ## Usage
 ### Preparation 
-
-Expliquer coment mettre les fichiers au bon endroit
+In order to prepare your dataset, plese upload the [CHAOS-MRT2](https://chaos.grand-challenge.org/Data/) dataset in the same folder as the dataPrepare.ipynb file.
+Then, run the dataPrepare.ipynb file
 
 ### Training 
 This model was trained on an abdominal image database which you can find [here](https://chaos.grand-challenge.org/Data/). However, this model can be trained on another medical or other imaging dataset.
 
-To train the model with a custom dataset, use the following script:
+To train both of your models (classic UNet and augmented UNet) with a custom dataset, use the following script:
 
 a modifier
 ```
-python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 16
+python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 8
 ```
 ### Evaluation
+To evaluate your model on a dataset, use the following script:
 
+```
+python evaluation.py --model_path "path of your .pt file" --data_dir "path of your dataset's folder" --device "cpu" --num_classes 5 --batch_size 8
+```
+If you have a GPU available : 
+```
+python evaluation.py --model_path "path of your .pt file" --data_dir "path of your dataset's folder" --device "cpu" --num_classes 5 --batch_size 8
+```
+the path of your dataset's folder has to be the path of your prepared dataset' folder in the case of CHAOS MRT2 dataset.
 ### Visualisation
 
 ## Results
@@ -76,7 +85,7 @@ here is a table comparing the dice score of the two structures
 | Structure         | Class 0  | Class 1  | Class 2  | Class 3  | Class 4  | Overall Dice Score |
 | ----------------- | -------- | -------- | -------- | -------- | -------- | ------------------ |
 | UNet              | 0.9920   | 0.6117   | 0.4747   | 0.4764   | 0.4907   | 0.6509             |
-| Augmented UNet    |  0.9959 | 0.8403 | 0.5559 | 0.6995 | 0.8670 | 0.7877 |
+| Augmented UNet    |  0.9908 | 0.8290 | 0.6133 | 0.6318 | 0.7015 | 0.7533 |
 
 
 ## Acknowledgements
