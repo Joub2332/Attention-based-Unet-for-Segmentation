@@ -65,6 +65,13 @@ a modifier
 ```
 python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 8
 ```
+#### Loss function
+In order to understand our model, we have to establish the losse functions for both of the models.
+![U-Net Augmented loss function](Pictures/loss_function_augmented.png)
+According to this graph, the training curve (blue) shows a gradual decrease in loss, which is expected when the model learns on the training data.
+The validation curve (orange) is more unstable, with several sudden peaks and large oscillations but still converges 
+The training loss is well controlled, but the validation loss shows some signs of variability.
+
 ### Evaluation
 To evaluate your model on a dataset, use the following script:
 
