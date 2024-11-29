@@ -15,31 +15,31 @@ def evaluation(model, val_loader, criterion, device, num_classes=5):
     class_correct = [0] * num_classes
     class_total = [0] * num_classes
 
-    model.eval()  # Mettre le modèle en mode évaluation
+    model.eval()  # Set the model to evaluation mode
     for data, label in val_loader:
         data = data.to(device, dtype=torch.float32)
-        label = label.to(device, dtype=torch.long).squeeze(1)  # Suppression de la dimension de canal si nécessaire
+        label = label.to(device, dtype=torch.long).squeeze(1)  # Remove channel dimension if necessary
 
         with torch.no_grad():
             output = model(data)
 
-        # Calcul de la perte
+        # Calculate the loss
         loss = criterion(output, label)
         val_loss += loss.item() * data.size(0)
 
-        # Prédictions par pixel
+        # Pixel-wise predictions
         _, preds = torch.max(output, dim=1)
 
-        # Calcul des pixels corrects pour chaque classe
+        # Calculate correct pixels for each class
         for i in range(num_classes):
             class_mask = (label == i)
             class_correct[i] += torch.sum((preds == i) & class_mask).item()
             class_total[i] += torch.sum(class_mask).item()
 
-    # Calcul de la perte moyenne
+    # Calculate the average loss
     val_loss /= len(val_loader.dataset)
 
-    # Affichage des précisions par classe
+    # Display class-wise accuracies
     print('Validation Loss: {:.6f}'.format(val_loss))
     for i in range(num_classes):
         if class_total[i] > 0:
@@ -48,7 +48,7 @@ def evaluation(model, val_loader, criterion, device, num_classes=5):
         else:
             print(f'Accuracy for class {i}: N/A (no pixels)')
 
-    # Calcul de la précision globale
+    # Calculate overall accuracy
     total_correct_pixels = sum(class_correct)
     total_pixels = sum(class_total)
     overall_accuracy = 100.0 * total_correct_pixels / total_pixels
@@ -59,41 +59,41 @@ def evaluation(model, val_loader, criterion, device, num_classes=5):
 
 def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
     val_loss = 0.0
-    dice_scores = [0.0] * num_classes  # Dice score par classe
+    dice_scores = [0.0] * num_classes  # Dice scores per class
     class_total = [0] * num_classes
 
-    model.eval()  # Mettre le modèle en mode évaluation
+    model.eval()  # Set the model to evaluation mode
     for data, label in val_loader:
         data = data.to(device, dtype=torch.float32)
-        label = label.to(device, dtype=torch.long).squeeze(1)  # Suppression de la dimension de canal si nécessaire
+        label = label.to(device, dtype=torch.long).squeeze(1)  # Remove channel dimension if necessary
 
         with torch.no_grad():
             output = model(data)
 
-        # Calcul de la perte
+        # Calculate the loss
         loss = criterion(output, label)
         val_loss += loss.item() * data.size(0)
 
-        # Prédictions par pixel
+        # Pixel-wise predictions
         _, preds = torch.max(output, dim=1)
 
-        # Calcul du Dice Score pour chaque classe
+        # Calculate Dice Score for each class
         for i in range(num_classes):
             class_mask = (label == i)
             pred_mask = (preds == i)
 
-            # Intersection et union pour le Dice Score
+            # Intersection and union for Dice Score
             intersection = torch.sum(pred_mask & class_mask).item()
             union = torch.sum(pred_mask).item() + torch.sum(class_mask).item()
 
-            if union > 0:  # Éviter une division par zéro
+            if union > 0:  # Avoid division by zero
                 dice_scores[i] += 2.0 * intersection / union
                 class_total[i] += 1
 
-    # Calcul de la perte moyenne
+    # Calculate the average loss
     val_loss /= len(val_loader.dataset)
 
-    # Affichage des scores Dice par classe
+    # Display Dice scores per class
     print('Validation Loss: {:.6f}'.format(val_loss))
     for i in range(num_classes):
         if class_total[i] > 0:
@@ -102,18 +102,18 @@ def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
         else:
             print(f'Dice Score for class {i}: N/A (no pixels)')
 
-    # Calcul du Dice Score moyen global
+    # Calculate the global average Dice Score
     global_dice = sum(dice_scores) / sum(class_total)
     print('Overall Dice Score: {:.4f}'.format(global_dice))
 
     return val_loss, global_dice, dice_scores
 
-def plot_confusion_matrix(cm, classes, normalize=False, title='Matrice de Confusion', cmap=plt.cm.Blues):
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion Matrix', cmap=plt.cm.Blues):
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Matrice de confusion normalisée")
+        print("Normalized confusion matrix")
     else:
-        print('Matrice de confusion sans normalisation')
+        print('Confusion matrix, without normalization')
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -130,8 +130,8 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Matrice de Confus
                  color="white" if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
-    plt.ylabel('Étiquette Vraie')
-    plt.xlabel('Étiquette Prédite')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
 
 def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
     y_true = []
@@ -141,65 +141,64 @@ def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
     with torch.no_grad():
         for data, mask in val_loader:
             data = data.to(device)
-            mask = mask.squeeze(1).to(device).long()  # Conversion explicite en entiers
+            mask = mask.squeeze(1).to(device).long()  # Explicit conversion to integers
 
             # Prédictions du modèle
             output = model(data)
-            predicted_classes = torch.argmax(output, dim=1).long()  # Conversion explicite en entiers
+            predicted_classes = torch.argmax(output, dim=1).long()  # Explicit conversion to integers
 
             # Collecter les valeurs réelles et prédites
-            y_true.extend(mask.cpu().numpy().flatten().astype(int))  # Conversion explicite en entiers
-            y_pred.extend(predicted_classes.cpu().numpy().flatten().astype(int))  # Conversion explicite en entiers
+            y_true.extend(mask.cpu().numpy().flatten().astype(int))  # Explicit conversion to integers
+            y_pred.extend(predicted_classes.cpu().numpy().flatten().astype(int))  # Explicit conversion to integers
 
-    # Créer la matrice de confusion
+    # Create the confusion matrix
     cm = confusion_matrix(y_true, y_pred, labels=np.arange(num_classes))
 
-    # Afficher la matrice de confusion
+    # Display the confusion matrix
     plt.figure(figsize=(10, 8))
     plot_confusion_matrix(cm, classes=[f'Classe {i}' for i in range(num_classes)])
     plt.show()
 
 def display_random_prediction(model, val_loader, device):
-    # Mettre le modèle en mode évaluation
-    model.eval()
+    model.eval() # Set the model to evaluation mode
 
-    # Sélectionner un batch aléatoire du valid loader
+    # Select a random batch from the validation loader
     data_iter = iter(val_loader)
     random_index = random.randint(0, len(val_loader) - 1)
     
     for _ in range(random_index):
-        next(data_iter)  # Ignorer jusqu'à l'index aléatoire
+        next(data_iter)  # Skip until the random index
 
-    # Récupérer un batch de données
+    # Retrieve a batch of data
     data, mask = next(data_iter)
     data = data.to(device, dtype=torch.float32)
     mask = mask.squeeze(1).to(device, dtype=torch.long)
 
-    # Faire des prédictions
+    # Make predictions
     with torch.no_grad():
         prediction = model(data)
         predicted_classes = torch.argmax(prediction, dim=1)
 
-    # Convertir en format CPU pour l'affichage
-    data = data.cpu().squeeze(0).squeeze(0).numpy()  # Première image du batch
-    mask = mask.cpu().squeeze(0).numpy()            # Vérité terrain
-    predicted_classes = predicted_classes.cpu().squeeze(0).numpy()  # Prédictions
+    # Convert to CPU format for display
+    data = data.cpu().squeeze(0).squeeze(0).numpy()  # First image of the batch
+    mask = mask.cpu().squeeze(0).numpy()  # Ground truth
+    predicted_classes = predicted_classes.cpu().squeeze(0).numpy()  # Predictions
 
-    # Normalisation de l'image source pour affichage
+    # Normalize the source image for display
     data = (data - data.min()) / (data.max() - data.min())
 
-    # Ajouter les contours à l'image source
-    image_with_contours = mark_boundaries(data, mask, color=(0, 1, 0))  # Contours verts (vérité terrain)
-    image_with_contours = mark_boundaries(image_with_contours, predicted_classes, color=(1, 0, 0))  # Contours rouges (prédictions)
+    # Add contours to the source image
+    image_with_contours = mark_boundaries(data, mask, color=(0, 1, 0))  # Green contours (ground truth)
+    image_with_contours = mark_boundaries(image_with_contours, predicted_classes, color=(1, 0, 0))  # Red contours (predictions)
 
-    # Afficher l'image avec les contours
+    # Display the image with contours
     plt.figure(figsize=(8, 8))
     plt.imshow(image_with_contours)
     plt.title('Contours Vrais (Vert) et Prédits (Rouge)')
     plt.axis('off')
     plt.show()
 
-#Faire une fonctionn pour plot les deux models sur un meme masque et pour comparer
+# Faire une fonctionn pour plot les deux models sur un meme masque et pour comparer
 if __name__ == "__main__":
     import argparse
 

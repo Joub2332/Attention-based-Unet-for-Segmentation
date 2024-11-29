@@ -1,5 +1,5 @@
-import argparse
 # Importing libraries 
+import argparse
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -7,7 +7,7 @@ import torch.nn as nn
 from data import dataLoaderMaking
 from model import UNet2d,UNetAug2D
 
-#Fonction pour lire les arguments
+# Function to read arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="Training script")
     parser.add_argument('--dataset_path', type=str, required=True, help="Path to the training dataset")
@@ -17,7 +17,7 @@ def parse_args():
 
 
 
-# Fonction d'entraînement modifiée
+# Modified training function
 def training(model, criterion, optimizer, train_loader, val_loader,device,n_epochs,nameFile):
     numberSamples = len(train_loader.dataset)
     train_losses, valid_losses = [], []
@@ -27,10 +27,10 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
     for epoch in range(n_epochs):
         train_loss, valid_loss = 0, 0
 
-        # Entraînement
+        # Training
         model.train()
         for data, label in train_loader:
-            data = data.to(device)  # Ajouter la dimension des canaux
+            data = data.to(device)  # Add the channel dimension
             label = label.squeeze(1).to(device).long()
 
             optimizer.zero_grad()
@@ -47,7 +47,7 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
         # Validation
         model.eval()
         for data, label in val_loader:
-            data = data.to(device)  # Ajouter la dimension des canaux
+            data = data.to(device)  # Add the channel dimension
             label = label.squeeze(1).to(device).long()
 
             with torch.no_grad():
@@ -55,7 +55,7 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
             loss = criterion(output, label)
             valid_loss += loss.item() * data.size(0)
 
-        # Calcul des pertes moyennes
+        # Calculate average losses
         train_loss /= len(train_loader.dataset)
         valid_loss /= len(val_loader.dataset)
         train_losses.append(train_loss)
@@ -63,7 +63,7 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
 
         print(f'Epoch: {epoch+1} \tTraining Loss: {train_loss:.6f} \tValidation Loss: {valid_loss:.6f}')
 
-        # Sauvegarder le modèle si la perte de validation a diminué
+        # Save the model if the validation loss has decreased
         if valid_loss <= valid_loss_min:
             print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}). Saving model...')
             torch.save(model.state_dict(), nameFile)
@@ -76,23 +76,23 @@ if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Charger les données
+    # Load the data
     train_loader,test_loader,val_loader = dataLoaderMaking(namefile=args.dataset_path,target_shape = (256, 256),batch_size = args.batch_size)
 
-    # Définir le modèle
+    # Define the model
     model_class = UNet2d()
     model_augm=UNetAug2D()
 
-    class_weights = torch.tensor([1.04, 30.3, 263.1, 158.7, 270.3]).to(device)  # Déplace les poids sur le même device que le modèle
+    class_weights = torch.tensor([1.04, 30.3, 263.1, 158.7, 270.3]).to(device)  # Move the weights to the same device as the model
 
-    # Définition de la perte pondérée
+    # Define the weighted loss
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    # Optimiseur Adam avec un learning rate plus bas
+    # Adam optimizer with a lower learning rate
     optimizer_class = torch.optim.Adam(model_class.parameters(), lr=0.00005)
     optimizer_augm = torch.optim.Adam(model_augm.parameters(), lr=0.00005)
-    # Entraîner le modèle   
 
+    # Train the model
     train_losses_class, valid_losses_class = training(model_class, criterion, optimizer_class, train_loader, val_loader,device,args.epochs,"model_classique.pt")
     train_losses_augm, valid_losses_caugm = training(model_augm, criterion, optimizer_augm, train_loader, val_loader,device,args.epochs,"model_augmenté.pt")
     
