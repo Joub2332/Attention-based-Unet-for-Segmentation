@@ -198,6 +198,60 @@ def display_random_prediction(model, val_loader, device):
     plt.axis('off')
     plt.show()
 
+
+def display_prediction_for_class(model, val_loader, device, target_class):
+    """
+    Displays a prediction for a specific class, highlighting true and predicted contours.
+
+    Args:
+        model: Trained segmentation model.
+        val_loader: DataLoader for the validation set.
+        device: Device to use (CPU or CUDA).
+        target_class: Index of the target class to display (e.g., 1 for liver).
+    """
+    # Set the model to evaluation mode
+    model.eval()
+
+    # Iterate through the validation DataLoader to find a batch with the target class
+    for data, mask in val_loader:
+        data = data.to(device, dtype=torch.float32)
+        mask = mask.squeeze(1).to(device, dtype=torch.long)
+
+        # Check if any mask contains the target class
+        contains_target_class = (mask == target_class).any(dim=(1, 2))  # Boolean array per image in batch
+        if contains_target_class.any():  # If at least one image contains the target class
+            break
+    else:
+        print(f"No images with class {target_class} were found in the validation set.")
+        return
+
+    # Select a random image that contains the target class
+    indices_with_target_class = torch.where(contains_target_class)[0]
+    random_image_index = random.choice(indices_with_target_class)  # Randomly select one
+    data_image = data[random_image_index].cpu().squeeze(0).numpy()
+    mask_image = mask[random_image_index].cpu().numpy()
+
+    # Make predictions
+    with torch.no_grad():
+        prediction = model(data)
+        predicted_classes = torch.argmax(prediction, dim=1)
+        predicted_image = predicted_classes[random_image_index].cpu().numpy()
+
+    # Normalize the input image for visualization
+    data_image = (data_image - data_image.min()) / (data_image.max() - data_image.min())
+
+    # Add contours for the target class
+    image_with_contours = mark_boundaries(data_image, mask_image == target_class, color=(0, 1, 0))  # Green for ground truth
+    image_with_contours = mark_boundaries(image_with_contours, predicted_image == target_class, color=(1, 0, 0))  # Red for predictions
+
+    # Display the image with contours
+    plt.figure(figsize=(8, 8))
+    plt.imshow(image_with_contours)
+    plt.title(f'Class {target_class}: True contours (green) and Predicted contours (red)')
+    plt.axis('off')
+    plt.show()
+
+
 # Faire une fonctionn pour plot les deux models sur un meme masque et pour comparer
 if __name__ == "__main__":
     import argparse
