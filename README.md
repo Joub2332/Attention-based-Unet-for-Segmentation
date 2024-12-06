@@ -101,7 +101,7 @@ The performance of the Attention-based U-Net was compared to the standard U-Net 
 
 | Structure         | Class 0  | Class 1  | Class 2  | Class 3  | Class 4  | Overall Dice Score |
 | ----------------- | -------- | -------- | -------- | -------- | -------- | ------------------ |
-| UNet              | 0.9920   | 0.6117   | 0.4747   | 0.4764   | 0.4907   | 0.6509             |
+| UNet              | 0.9904   | 0.7217   | 0.5004   | 0.3693   | 0.4606   | 0.6118             |
 | Augmented UNet    |  0.9908 | 0.8290 | 0.6133 | 0.6318 | 0.7015 | 0.7533 |
 
 
