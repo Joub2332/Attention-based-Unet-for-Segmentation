@@ -99,7 +99,7 @@ python main.py --dataset_path ./data --train --epochs 50 --batch_size 8 --device
 ## Results
 The performance of the Attention-based U-Net was compared to the standard U-Net version, showing a significant improvement in precision and recall metrics. Here is a table comparing the dice score of the two structures:
 
-| Structure         | Class 0  | Class 1  | Class 2  | Class 3  | Class 4  | Overall Dice Score |
+| Structure         | Class 0 (Background)  | Class 1 (Liver)  | Class 2 (Right Kidney)  | Class 3 (Left Kidney)  | Class 4 (Spleen)  | Overall Dice Score |
 | ----------------- | -------- | -------- | -------- | -------- | -------- | ------------------ |
 | UNet              | 0.9904   | 0.7217   | 0.5004   | 0.3693   | 0.4606   | 0.6118             |
 | Augmented UNet    |  0.9908 | 0.8290 | 0.6133 | 0.6318 | 0.7015 | 0.7533 |
