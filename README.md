@@ -66,9 +66,10 @@ python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 8
 ```
 #### Loss function
 In order to understand our model, we have to establish the loss functions for both models.
+
 For the first model we get this loss function : 
 
-![U-Net loss function](Pictures/loss_funcitons_classic_unet.png)
+![U-Net loss function](Pictures/loss_functions_classic_unet.png)
 
 According to this graph, the training loss steadily decreases, indicating that the model is learning to better fit the training data.
 The validation loss follows a similar trend at the beginning, with larger oscillations as the epochs progress.
@@ -83,15 +84,10 @@ The training loss is well controlled, but the validation loss shows some signs o
 
 ### Evaluation
 To evaluate the model on a dataset, use the following script:
-
 ```
-python evaluation.py --model_path path_of_your_model's_.pt_file --data_dir path_of_your_dataset's_folder --device "cpu" --num_classes 5 --batch_size 8
+python evaluation.py --model_path path_of_your_UNET_model's_.pt_file --model_path2 path_of_your_Augmented_UNET_model's_.pt_file --data_dir path_of_your_dataset's_folder --device ("cpu" or "cuda") --num_classes 5 --batch_size 8
 ```
-If you have a GPU available: 
-```
-python evaluation.py --model_path path_of_your_UNET_model's_.pt_file --model_path2 path_of_your_Augmented_UNET_model's_.pt_file --data_dir path_of_your_dataset's_folder --device "cuda"_or_"cpu" --num_classes 5 --batch_size 8
-```
-the path of your dataset's folder has to be the path of your prepared dataset' folder in the case of CHAOS MRT2 dataset.
+the path of your dataset's folder has to be the path of your prepared dataset' folder in the case the CHAOS MRT2 Normalized 2D folder.
 
 ### Run it all
 To run the whole project as a whole, you have two options.
@@ -121,13 +117,13 @@ Here is some results of the both models :
 Moreover, here are predictions by organs for the unet model with attention gate : 
 
 The Liver :
-![Liver](Pictures/Class1Predicitons.png)
+![Liver](Pictures/class1Predictions.png)
 The Right Kidney : 
-![Right_kidney](Pictures/Class2Predicitons.png)
+![Right_kidney](Pictures/class2Predictions.png)
 The Left Kidney : 
-![left_kidney](Pictures/Class3Predicitons.png)
+![left_kidney](Pictures/class3Predictions.png)
 The Spleen : 
-![spleen](Pictures/Class4Predicitons.png)
+![spleen](Pictures/class4Predictions.png)
 
 Finally we can visualize the attention map at the output of the attention gates for the augmented and trained UNET : 
 
