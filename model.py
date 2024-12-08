@@ -100,13 +100,18 @@ class AttentionBlock2D(nn.Module):
         )
         self.relu = nn.ReLU(inplace=True)
 
-    def forward(self, gate, skip_connection):
+    def forward(self, gate, skip_connection, return_attention=False):
         g1 = self.W_gate(gate)
         x1 = self.W_x(skip_connection)
         psi = self.relu(g1 + x1)
         psi = self.psi(psi)
+        attentionMap=None
+        if return_attention:
+            attentionMap= psi  # Renvoie la carte d'attention
+        
         out = skip_connection * psi
-        return out
+        return out,attentionMap
+
 
 class UNetAug2D(nn.Module):
     def __init__(self, in_channels=1, out_channels=5, n_coefficients=3):
@@ -159,7 +164,10 @@ class UNetAug2D(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def forward(self, x):
+    
+    def forward(self, x, return_attention=False):
+        attention_maps = []  # Liste pour stocker les cartes d'attention
+        
         enc1 = self.enc1(x)
         enc2 = self.enc2(self.MaxPool(enc1))
         enc3 = self.enc3(self.MaxPool(enc2))
@@ -167,25 +175,36 @@ class UNetAug2D(nn.Module):
         enc5 = self.enc5(self.MaxPool(enc4))
 
         dec5 = self.dec5(enc5)
-        att4 = self.att5(gate=dec5, skip_connection=enc4)
+        att4,bis = self.att5(gate=dec5, skip_connection=enc4, return_attention=return_attention)
+        if return_attention: 
+            attention_maps.append(bis)
         dec5 = torch.cat((att4, dec5), dim=1)
         dec5 = self.conv5(dec5)
 
         dec4 = self.dec4(dec5)
-        att3 = self.att4(gate=dec4, skip_connection=enc3)
+        att3,bis2 = self.att4(gate=dec4, skip_connection=enc3, return_attention=return_attention)
+        if return_attention: 
+            attention_maps.append(bis2)
         dec4 = torch.cat((att3, dec4), dim=1)
         dec4 = self.conv4(dec4)
 
         dec3 = self.dec3(dec4)
-        att2 = self.att3(gate=dec3, skip_connection=enc2)
+        att2,bis3 = self.att3(gate=dec3, skip_connection=enc2, return_attention=return_attention)
+        if return_attention: 
+            attention_maps.append(bis3)
         dec3 = torch.cat((att2, dec3), dim=1)
         dec3 = self.conv3(dec3)
 
         dec2 = self.dec2(dec3)
-        att1 = self.att2(gate=dec2, skip_connection=enc1)
+        att1,bis4 = self.att2(gate=dec2, skip_connection=enc1, return_attention=return_attention)
+        if return_attention: 
+            attention_maps.append(bis4)
         dec2 = torch.cat((att1, dec2), dim=1)
         dec2 = self.conv2(dec2)
 
+        if return_attention:
+            return self.final_conv(dec2), attention_maps  # Renvoie la sortie + cartes d'attention
+        
         return self.final_conv(dec2)
 
 
