@@ -67,11 +67,14 @@ python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 8
 #### Loss function
 In order to understand our model, we have to establish the loss functions for both models.
 For the first model we get this loss function : 
-![U-Net loss function](loss_funcitons_classic_unet.png)
+
+![U-Net loss function](Pictures/loss_funcitons_classic_unet.png)
+
 According to this graph, the training loss steadily decreases, indicating that the model is learning to better fit the training data.
 The validation loss follows a similar trend at the beginning, with larger oscillations as the epochs progress.
 From a certain point (around 20 to 30 epochs), the validation and training loss stabilizes around a low value, showing that the model reaches convergence.
 Overall, this graph shows good behavior with training and validation loss decreasing, indicating that the model is learning efficiently without obvious overtraining.
+
 For the second model we get this loss function : 
 ![U-Net Augmented loss function](Pictures/loss_function_augmented.png)
 According to this graph, the training curve (blue) shows a gradual decrease in loss, which is expected when the model learns on the training data.
@@ -111,24 +114,24 @@ The performance of the Attention-based U-Net was compared to the standard U-Net 
 | Augmented UNet    |  0.9908 | 0.8290 | 0.6133 | 0.6318 | 0.7015 | 0.7533 |
 
 Here is some results of the both models : 
-![Both_predicitons](Comparaison_modelsoutput.png)
+![Both_predicitons](Pictures/Comparaison_modelsoutput.png)
 
-![Both_predicitons_bis](two_predictions.png)
+![Both_predicitons_bis](Pictures/two_predictions.png)
 
 Moreover, here are predictions by organs for the unet model with attention gate : 
 
 The Liver :
-![Liver](Class1Predicitons.png)
+![Liver](Pictures/Class1Predicitons.png)
 The Right Kidney : 
-![Right_kidney](Class2Predicitons.png)
+![Right_kidney](Pictures/Class2Predicitons.png)
 The Left Kidney : 
-![left_kidney](Class3Predicitons.png)
+![left_kidney](Pictures/Class3Predicitons.png)
 The Spleen : 
-![spleen](Class4Predicitons.png)
+![spleen](Pictures/Class4Predicitons.png)
 
 Finally we can visualize the attention map at the output of the attention gates for the augmented and trained UNET : 
 
-![Attention_map](attention_map.png)
+![Attention_map](Pictures/attention_map.png)
 
 ## Acknowledgements
 This project was developed as part of the TAF Deep Learning course led and supervised by Pierre-Henri Conze at IMT Atlantique.
