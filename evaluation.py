@@ -8,6 +8,8 @@ import itertools
 from sklearn.metrics import confusion_matrix
 from skimage.segmentation import mark_boundaries
 from data import dataLoaderMaking
+from model import UNet2d
+from model import UNetAug2D
 
 
 def evaluation(model, val_loader, criterion, device, num_classes=5):
@@ -152,50 +154,126 @@ def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
             y_pred.extend(predicted_classes.cpu().numpy().flatten().astype(int))  # Explicit conversion to integers
 
     # Create the confusion matrix
+    print("test")
     cm = confusion_matrix(y_true, y_pred, labels=np.arange(num_classes))
-
+    print("test")
     # Display the confusion matrix
     plt.figure(figsize=(10, 8))
     plot_confusion_matrix(cm, classes=[f'Classe {i}' for i in range(num_classes)])
     plt.show()
 
 def display_random_prediction(model, val_loader, device):
-    model.eval() # Set the model to evaluation mode
+    # Mettre le modèle en mode évaluation
+    model.eval()
 
-    # Select a random batch from the validation loader
+    # Sélectionner un batch aléatoire du valid loader
     data_iter = iter(val_loader)
     random_index = random.randint(0, len(val_loader) - 1)
-    
-    for _ in range(random_index):
-        next(data_iter)  # Skip until the random index
 
-    # Retrieve a batch of data
+    for _ in range(random_index):
+        next(data_iter)  # Ignorer jusqu'à l'index aléatoire
+
+    # Récupérer un batch de données
     data, mask = next(data_iter)
     data = data.to(device, dtype=torch.float32)
     mask = mask.squeeze(1).to(device, dtype=torch.long)
 
-    # Make predictions
+    # Faire des prédictions
     with torch.no_grad():
         prediction = model(data)
         predicted_classes = torch.argmax(prediction, dim=1)
 
-    # Convert to CPU format for display
-    data = data.cpu().squeeze(0).squeeze(0).numpy()  # First image of the batch
-    mask = mask.cpu().squeeze(0).numpy()  # Ground truth
-    predicted_classes = predicted_classes.cpu().squeeze(0).numpy()  # Predictions
+    # Choisir une image aléatoire dans le batch
+    random_image_index = random.randint(0, data.size(0) - 1)
+    data_image = data[random_image_index].cpu().squeeze(0).numpy()
+    mask_image = mask[random_image_index].cpu().numpy()
+    predicted_image = predicted_classes[random_image_index].cpu().numpy()
 
-    # Normalize the source image for display
-    data = (data - data.min()) / (data.max() - data.min())
+    # Normalisation de l'image source pour affichage
+    data_image = (data_image - data_image.min()) / (data_image.max() - data_image.min())
 
-    # Add contours to the source image
-    image_with_contours = mark_boundaries(data, mask, color=(0, 1, 0))  # Green contours (ground truth)
-    image_with_contours = mark_boundaries(image_with_contours, predicted_classes, color=(1, 0, 0))  # Red contours (predictions)
+    # Ajouter les contours à l'image source
+    image_with_contours = mark_boundaries(data_image, mask_image, color=(0, 1, 0))  # Contours verts (vérité terrain)
+    image_with_contours = mark_boundaries(image_with_contours, predicted_image, color=(1, 0, 0))  # Contours rouges (prédictions)
 
-    # Display the image with contours
+    # Afficher l'image avec les contours
     plt.figure(figsize=(8, 8))
     plt.imshow(image_with_contours)
     plt.title('Contours Vrais (Vert) et Prédits (Rouge)')
     plt.axis('off')
+    plt.show()
+
+def display_comparison(models, val_loader, device, class_names=None):
+    """
+    Displays a random image with the ground truth mask and predictions from two models.
+
+    Args:
+        models: List of trained models [model_1, model_2].
+        val_loader: DataLoader for the validation set.
+        device: Device to use (CPU or CUDA).
+        class_names: List of class names corresponding to the indices, optional.
+    """
+    # Set both models to evaluation mode
+    for model in models:
+        model.eval()
+
+    # Select a random batch from the validation DataLoader
+    data_iter = iter(val_loader)
+    random_batch_index = random.randint(0, len(val_loader) - 1)
+
+    for _ in range(random_batch_index):
+        next(data_iter)  # Skip to the selected random batch
+
+    # Get a batch of data and its masks
+    data, mask = next(data_iter)
+    data = data.to(device, dtype=torch.float32)
+    mask = mask.squeeze(1).to(device, dtype=torch.long)
+
+    # Select a random image from the batch
+    random_image_index = random.randint(0, data.size(0) - 1)
+    data_image = data[random_image_index].cpu().squeeze(0).numpy()
+    mask_image = mask[random_image_index].cpu().numpy()
+
+    # Get predictions from both models
+    predictions = []
+    with torch.no_grad():
+        for model in models:
+            prediction = model(data)
+            predicted_classes = torch.argmax(prediction, dim=1)
+            predictions.append(predicted_classes[random_image_index].cpu().numpy())
+
+    # Normalize the input image for visualization
+    data_image = (data_image - data_image.min()) / (data_image.max() - data_image.min())
+
+    # Plot ground truth and predictions
+    plt.figure(figsize=(15, 5))
+
+    # Plot the input image
+    plt.subplot(1, len(models) + 2, 1)
+    plt.imshow(data_image, cmap='gray')
+    plt.title('Input Image')
+    plt.axis('off')
+
+    # Plot the ground truth mask
+    plt.subplot(1, len(models) + 2, 2)
+    plt.imshow(mask_image, cmap='viridis')
+    if class_names:
+        plt.title('Ground Truth')
+    else:
+        plt.title('Ground Truth Mask')
+    plt.axis('off')
+
+    # Plot predictions for each model
+    for i, prediction in enumerate(predictions):
+        plt.subplot(1, len(models) + 2, i + 3)
+        plt.imshow(prediction, cmap='viridis')
+        title = f'Prediction (Model {i + 1})'
+        if class_names:
+            title += f'\n{class_names}'
+        plt.title(title)
+        plt.axis('off')
+
+    plt.tight_layout()
     plt.show()
 
 def display_prediction_for_class(model, val_loader, device, target_class):
@@ -496,7 +574,8 @@ if __name__ == "__main__":
 
     # Load the model
     print(f"Loading model 1 from {args.model_path}...")
-    model = torch.load(args.model_path, map_location=device)
+    model =UNet2d()
+    model.load_state_dict(torch.load(args.model_path))
     model = model.to(device)
     print("Evaluation of your first model (Classic UNET)")
 
@@ -507,7 +586,7 @@ if __name__ == "__main__":
     # Data loading
     print(f"Loading data from {args.data_dir}...")
     # Create dataset and DataLoader
-    train_loader,test_loader,val_loader=dataLoaderMaking(namefile=argparse.data_dir,target_shape = (256, 256),batch_size = argparse.batch_size)
+    train_loader,test_loader,val_loader=dataLoaderMaking(namefile=args.data_dir,target_shape = (256, 256),batch_size = args.batch_size)
 
     # Perform evaluations
     print("Evaluating model...")
@@ -535,7 +614,8 @@ if __name__ == "__main__":
 
     # Load the model 2
     print(f"Loading model 2 from {args.model_path2}...")
-    model2 = torch.load(args.model_path2, map_location=device)
+    model2=UNetAug2D 
+    model2.load_state_dict(torch.load(args.model_path2))
     model2 = model2.to(device)
     print("Evaluation of your first model (Augmented UNET)")
 
