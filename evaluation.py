@@ -10,6 +10,7 @@ from skimage.segmentation import mark_boundaries
 from data import dataLoaderMaking
 from model import UNet2d
 from model import UNetAug2D
+from model import AttentionBlock2D
 
 
 def evaluation(model, val_loader, criterion, device, num_classes=5):
@@ -296,7 +297,7 @@ def display_prediction_for_class(model, val_loader, device, target_class):
         mask = mask.squeeze(1).to(device, dtype=torch.long)
 
         # Check if any mask contains the target class
-        contains_target_class = (mask == target_class).any(dim=(1, 2))  # Boolean array per image in batch
+        contains_target_class = (mask == target_class).any(dim=(1)).any(dim=(1))  # Boolean array per image in batch
         if contains_target_class.any():  # If at least one image contains the target class
             break
     else:
@@ -572,13 +573,6 @@ if __name__ == "__main__":
     # Device configuration
     device = torch.device(args.device)
 
-    # Load the model
-    print(f"Loading model 1 from {args.model_path}...")
-    model =UNet2d()
-    model.load_state_dict(torch.load(args.model_path))
-    model = model.to(device)
-    print("Evaluation of your first model (Classic UNET)")
-
     # Define loss function
     if args.criterion == "cross_entropy":
         criterion = nn.CrossEntropyLoss()
@@ -587,6 +581,12 @@ if __name__ == "__main__":
     print(f"Loading data from {args.data_dir}...")
     # Create dataset and DataLoader
     train_loader,test_loader,val_loader=dataLoaderMaking(namefile=args.data_dir,target_shape = (256, 256),batch_size = args.batch_size)
+
+    # Load the model
+    print(f"Loading model 1 from {args.model_path}...")
+    model = torch.load(args.model_path)
+    model = model.to(device)
+    print("Evaluation of your first model (Classic U-Net)")
 
     # Perform evaluations
     print("Evaluating model...")
@@ -611,20 +611,14 @@ if __name__ == "__main__":
     print("Class 4")
     display_prediction_for_class(model,test_loader,device,1)
 
+    # -----------------------------------------------------------
 
     # Load the model 2
     print(f"Loading model 2 from {args.model_path2}...")
-    model2=UNetAug2D 
-    model2.load_state_dict(torch.load(args.model_path2))
+    model2 = torch.load(args.model_path2)
     model2 = model2.to(device)
-    print("Evaluation of your first model (Augmented UNET)")
+    print("Evaluation of your second model (Attention U-Net)")
 
-    # Define loss function
-    if args.criterion == "cross_entropy":
-        criterion = nn.CrossEntropyLoss()
-
-    # Data loading
-    print(f"Loading data from {args.data_dir}...")
 
     # Perform evaluations
     print("Evaluating model...")
@@ -660,3 +654,4 @@ if __name__ == "__main__":
     print("Displaying Comparaison between the two models")
     display_comparison([model,model2], val_loader, device, class_names=None)
 
+# python3 evaluation.py --model_path modelUnetClassic.pth --model_path2 modelUnetAttention.pt --data_dir CHAOS-MRT2-2D-NORMALIZED --device "cpu" --num_classes 5 --batch_size 8
