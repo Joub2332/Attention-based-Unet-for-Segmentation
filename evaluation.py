@@ -584,32 +584,32 @@ if __name__ == "__main__":
 
     # Load the model
     print(f"Loading model 1 from {args.model_path}...")
-    model = torch.load(args.model_path)
-    model = model.to(device)
+    model1 = torch.load(args.model_path)
+    model1 = model1.to(device)
     print("Evaluation of your first model (Classic U-Net)")
 
     # Perform evaluations
     print("Evaluating model...")
-    evaluation(model, test_loader, criterion, device, num_classes=args.num_classes)
+    evaluation(model1, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Evaluating with Dice scores...")
-    evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
+    evaluation_with_dice(model1, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Generating confusion matrix...")
-    evaluate_confusion_matrix(model, test_loader, device, num_classes=args.num_classes)
+    evaluate_confusion_matrix(model1, test_loader, device, num_classes=args.num_classes)
 
     print("Displaying random predictions...")
-    display_random_prediction(model, test_loader, device)
+    display_random_prediction(model1, test_loader, device)
 
     print("Displaying predictions for each class...")
     print("Class 1")
-    display_prediction_for_class(model,test_loader,device,1)
+    display_prediction_for_class(model1,test_loader,device,1)
     print("Class 2")
-    display_prediction_for_class(model,test_loader,device,1)
+    display_prediction_for_class(model1,test_loader,device,1)
     print("Class 3")
-    display_prediction_for_class(model,test_loader,device,1)
+    display_prediction_for_class(model1,test_loader,device,1)
     print("Class 4")
-    display_prediction_for_class(model,test_loader,device,1)
+    display_prediction_for_class(model1,test_loader,device,1)
 
     # -----------------------------------------------------------
 

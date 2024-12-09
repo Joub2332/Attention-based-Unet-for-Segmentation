@@ -66,7 +66,7 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
         # Save the model if the validation loss has decreased
         if valid_loss <= valid_loss_min:
             print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}). Saving model...')
-            torch.save(model.state_dict(), nameFile)
+            torch.save(model, nameFile) # a tester
             valid_loss_min = valid_loss
 
     return train_losses, valid_losses
