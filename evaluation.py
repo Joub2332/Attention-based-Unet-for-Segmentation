@@ -154,9 +154,7 @@ def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
             y_pred.extend(predicted_classes.cpu().numpy().flatten().astype(int))  # Explicit conversion to integers
 
     # Create the confusion matrix
-    print("test")
     cm = confusion_matrix(y_true, y_pred, labels=np.arange(num_classes))
-    print("test")
     # Display the confusion matrix
     plt.figure(figsize=(10, 8))
     plot_confusion_matrix(cm, classes=[f'Classe {i}' for i in range(num_classes)])
@@ -572,6 +570,11 @@ if __name__ == "__main__":
     # Device configuration
     device = torch.device(args.device)
 
+     # Data loading
+    print(f"Loading data from {args.data_dir}...")
+    # Create dataset and DataLoader
+    train_loader,test_loader,val_loader=dataLoaderMaking(namefile=args.data_dir,target_shape = (256, 256),batch_size = args.batch_size)
+
     # Load the model
     print(f"Loading model 1 from {args.model_path}...")
     model =UNet2d()
@@ -583,39 +586,34 @@ if __name__ == "__main__":
     if args.criterion == "cross_entropy":
         criterion = nn.CrossEntropyLoss()
 
-    # Data loading
-    print(f"Loading data from {args.data_dir}...")
-    # Create dataset and DataLoader
-    train_loader,test_loader,val_loader=dataLoaderMaking(namefile=args.data_dir,target_shape = (256, 256),batch_size = args.batch_size)
-
     # Perform evaluations
     print("Evaluating model...")
-    evaluation(model, test_loader, criterion, device, num_classes=args.num_classes)
+    #evaluation(model, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Evaluating with Dice scores...")
-    evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
+    #evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Generating confusion matrix...")
-    evaluate_confusion_matrix(model, test_loader, device, num_classes=args.num_classes)
+    #evaluate_confusion_matrix(model, test_loader, device, num_classes=args.num_classes)
 
     print("Displaying random predictions...")
-    display_random_prediction(model, test_loader, device)
+    #display_random_prediction(model, test_loader, device)
 
     print("Displaying predictions for each class...")
     print("Class 1")
-    display_prediction_for_class(model,test_loader,device,1)
+    #display_prediction_for_class(model,test_loader,device,1)
     print("Class 2")
-    display_prediction_for_class(model,test_loader,device,1)
+    #display_prediction_for_class(model,test_loader,device,1)
     print("Class 3")
-    display_prediction_for_class(model,test_loader,device,1)
+    #display_prediction_for_class(model,test_loader,device,1)
     print("Class 4")
-    display_prediction_for_class(model,test_loader,device,1)
+    #display_prediction_for_class(model,test_loader,device,1)
 
 
     # Load the model 2
     print(f"Loading model 2 from {args.model_path2}...")
-    model2=UNetAug2D 
-    model2.load_state_dict(torch.load(args.model_path2), map_location=torch.device(device))
+    model2=UNetAug2D() 
+    model2.load_state_dict(torch.load((args.model_path2), map_location=torch.device(device)))
     model2 = model2.to(device)
     print("Evaluation of your first model (Augmented UNET)")
 
