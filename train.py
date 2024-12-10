@@ -66,7 +66,7 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
         # Save the model if the validation loss has decreased
         if valid_loss <= valid_loss_min:
             print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}). Saving model...')
-            torch.save(model, nameFile) # a tester
+            torch.save(model.state_dict(), nameFile)
             valid_loss_min = valid_loss
 
     return train_losses, valid_losses
@@ -98,78 +98,3 @@ if __name__ == "__main__":
     
     # We can add lines of code if we want to use train and valid losses 
 
-#a tester dans le unet augmented a la place du training
-"""
-import torchvision.transforms as T
-
-def training_with_all_transforms(model, criterion, optimizer, train_loader, val_loader, device, n_epochs):
-    numberSamples = len(train_loader.dataset)
-    train_losses, valid_losses = [], []
-    valid_loss_min = np.inf
-
-    # Liste de transformations à appliquer
-    transformations = [
-        T.RandomRotation(degrees=15),
-        T.RandomHorizontalFlip(p=1.0),
-        T.RandomVerticalFlip(p=1.0),
-        T.RandomAffine(degrees=0, translate=(0.1, 0.1))
-    ]
-
-    for epoch in range(n_epochs):
-        train_loss, valid_loss = 0, 0
-
-        # Entraînement
-        model.train()
-        for data, label in train_loader:
-            all_augmented_data = []
-            all_augmented_labels = []
-
-            for transform in transformations:
-                for img, lbl in zip(data, label):
-                    # Appliquer la transformation
-                    augmented_img = transform(img)
-                    augmented_lbl = transform(lbl)
-
-                    all_augmented_data.append(augmented_img)
-                    all_augmented_labels.append(augmented_lbl)
-
-            # Convertir en tenseurs
-            augmented_data = torch.stack(all_augmented_data).to(device)
-            augmented_labels = torch.stack(all_augmented_labels).squeeze(1).to(device).long()
-
-            optimizer.zero_grad()
-            output = model(augmented_data)
-
-            loss = criterion(output, augmented_labels)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item() * augmented_data.size(0)
-
-        # Validation
-        model.eval()
-        for data, label in val_loader:
-            data = data.to(device)
-            label = label.squeeze(1).to(device).long()
-
-            with torch.no_grad():
-                output = model(data)
-            loss = criterion(output, label)
-            valid_loss += loss.item() * data.size(0)
-
-        # Calcul des pertes moyennes
-        train_loss /= len(train_loader.dataset)
-        valid_loss /= len(val_loader.dataset)
-        train_losses.append(train_loss)
-        valid_losses.append(valid_loss)
-
-        print(f'Epoch: {epoch+1} \tTraining Loss: {train_loss:.6f} \tValidation Loss: {valid_loss:.6f}')
-
-        # Sauvegarder le modèle si la perte de validation a diminué
-        if valid_loss <= valid_loss_min:
-            print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}). Saving model...')
-            torch.save(model.state_dict(), 'modelAttentionUNet.pt')
-            valid_loss_min = valid_loss
-
-    return train_losses, valid_losses
-
-    """
