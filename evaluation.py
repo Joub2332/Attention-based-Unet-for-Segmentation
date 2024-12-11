@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Importing libraries 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ from model import UNet2d
 from model import UNetAug2D
 
 
-def evaluation(model, val_loader, criterion, device, num_classes=5):
+def evaluation_pixel(model, val_loader, criterion, device, num_classes=5):
     val_loss = 0.0
     class_correct = [0] * num_classes
     class_total = [0] * num_classes
@@ -46,9 +47,9 @@ def evaluation(model, val_loader, criterion, device, num_classes=5):
     for i in range(num_classes):
         if class_total[i] > 0:
             accuracy_class = 100.0 * class_correct[i] / class_total[i]
-            print(f'Accuracy for class {i}: {accuracy_class:.2f}% ({class_correct[i]}/{class_total[i]})')
+            print('Accuracy for class ' + str(i) + ': ' + str(round(accuracy_class, 2)) + '% (' + str(class_correct[i]) + '/' + str(class_total[i]) + ')')
         else:
-            print(f'Accuracy for class {i}: N/A (no pixels)')
+            print('Accuracy for class ' + str(i) + ': N/A (no pixels)')
 
     # Calculate overall accuracy
     total_correct_pixels = sum(class_correct)
@@ -100,9 +101,9 @@ def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
     for i in range(num_classes):
         if class_total[i] > 0:
             average_dice = dice_scores[i] / class_total[i]
-            print(f'Dice Score for class {i}: {average_dice:.4f}')
+            print('Dice Score for class ' + str(i) + ': ' + str(round(average_dice, 4)))
         else:
-            print(f'Dice Score for class {i}: N/A (no pixels)')
+            print('Dice Score for class'+str(i)+': N/A (no pixels)')
 
     # Calculate the global average Dice Score
     global_dice = sum(dice_scores) / sum(class_total)
@@ -157,7 +158,7 @@ def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
     cm = confusion_matrix(y_true, y_pred, labels=np.arange(num_classes))
     # Display the confusion matrix
     plt.figure(figsize=(10, 8))
-    plot_confusion_matrix(cm, classes=[f'Classe {i}' for i in range(num_classes)])
+    plot_confusion_matrix(cm, classes=['Classe ' + str(i) for i in range(num_classes)])
     plt.show()
 
 def display_random_prediction(model, val_loader, device):
@@ -265,9 +266,9 @@ def display_comparison(models, val_loader, device, class_names=None):
     for i, prediction in enumerate(predictions):
         plt.subplot(1, len(models) + 2, i + 3)
         plt.imshow(prediction, cmap='viridis')
-        title = f'Prediction (Model {i + 1})'
+        title = 'Prediction (Model ' + str(i + 1) + ')'
         if class_names:
-            title += f'\n{class_names}'
+            title += '\n' + str(class_names)
         plt.title(title)
         plt.axis('off')
 
@@ -298,7 +299,7 @@ def display_prediction_for_class(model, val_loader, device, target_class):
         if contains_target_class.any():  # If at least one image contains the target class
             break
     else:
-        print(f"No images with class {target_class} were found in the validation set.")
+        print("No images with class " + str(target_class) + " were found in the validation set.")
         return
 
     # Select a random image that contains the target class
@@ -337,19 +338,19 @@ def display_prediction_for_class(model, val_loader, device, target_class):
     # Plot the original image with contours
     plt.subplot(2, 2, 1)
     plt.imshow(image_with_contours)
-    plt.title(f'Class {target_class}: True contours (green) and Predicted contours (red)')
+    plt.title('Class ' + str(target_class) + ': True contours (green) and Predicted contours (red)')
     plt.axis('off')
 
     # Plot the full ground truth mask for the target class
     plt.subplot(2, 2, 2)
     plt.imshow(full_mask, cmap='gray')
-    plt.title(f'Ground Truth Mask for Class {target_class}')
+    plt.title('Ground Truth Mask for Class ' + str(target_class))
     plt.axis('off')
 
     # Plot the full predicted mask for the target class
     plt.subplot(2, 2, 3)
     plt.imshow(full_pred_mask, cmap='gray')
-    plt.title(f'Predicted Mask for Class {target_class}')
+    plt.title('Predicted Mask for Class'+ str(target_class))
     plt.axis('off')
 
     plt.tight_layout()
@@ -415,7 +416,7 @@ def visualize_attention_with_outlines_and_scales(model, data_loader, device):
         cbar = plt.colorbar(im, ax=axes[i + 1], fraction=0.046, pad=0.04)
         cbar.set_label('Visualisation of the Attention', rotation=270, labelpad=15)
 
-        axes[i + 1].set_title(f'Attention Map {i + 1}')
+        axes[i + 1].set_title('Attention Map ' + str(i + 1))
         axes[i + 1].axis('off')
 
     # Réglage de la mise en page
@@ -542,9 +543,9 @@ def display_comparison(models, val_loader, device, class_names=None):
     for i, prediction in enumerate(predictions):
         plt.subplot(1, len(models) + 2, i + 3)
         plt.imshow(prediction, cmap='viridis')
-        title = f'Prediction (Model {i + 1})'
+        title = 'Prediction (Model ' + str(i + 1) + ')'
         if class_names:
-            title += f'\n{class_names}'
+            title += '\n' + str(class_names)
         plt.title(title)
         plt.axis('off')
 
@@ -570,14 +571,14 @@ if __name__ == "__main__":
     # Device configuration
     device = torch.device(args.device)
 
-     # Data loading
-    print(f"Loading data from {args.data_dir}...")
+        # Data loading
+    print("Loading data from {}...".format(args.data_dir))
     # Create dataset and DataLoader
-    train_loader,test_loader,val_loader=dataLoaderMaking(namefile=args.data_dir,target_shape = (256, 256),batch_size = args.batch_size)
+    train_loader, test_loader, val_loader = dataLoaderMaking(namefile=args.data_dir, target_shape=(256, 256), batch_size=args.batch_size)
 
     # Load the model
-    print(f"Loading model 1 from {args.model_path}...")
-    model =UNet2d()
+    print("Loading model 1 from {}...".format(args.model_path))
+    model = UNet2d()
     model.load_state_dict(torch.load(args.model_path, map_location=torch.device(device)))
     model = model.to(device)
     print("Evaluation of your first model (Classic UNET)")
@@ -588,45 +589,44 @@ if __name__ == "__main__":
 
     # Perform evaluations
     print("Evaluating model...")
-    #evaluation(model, test_loader, criterion, device, num_classes=args.num_classes)
+    evaluation_pixel(model, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Evaluating with Dice scores...")
-    #evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
+    # evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Generating confusion matrix...")
-    #evaluate_confusion_matrix(model, test_loader, device, num_classes=args.num_classes)
+    # evaluate_confusion_matrix(model, test_loader, device, num_classes=args.num_classes)
 
     print("Displaying random predictions...")
-    #display_random_prediction(model, test_loader, device)
+    # display_random_prediction(model, test_loader, device)
 
     print("Displaying predictions for each class...")
     print("Class 1")
-    #display_prediction_for_class(model,test_loader,device,1)
+    # display_prediction_for_class(model, test_loader, device, 1)
     print("Class 2")
-    #display_prediction_for_class(model,test_loader,device,1)
+    # display_prediction_for_class(model, test_loader, device, 2)
     print("Class 3")
-    #display_prediction_for_class(model,test_loader,device,1)
+    # display_prediction_for_class(model, test_loader, device, 3)
     print("Class 4")
-    #display_prediction_for_class(model,test_loader,device,1)
-
+    # display_prediction_for_class(model, test_loader, device, 4)
 
     # Load the model 2
-    print(f"Loading model 2 from {args.model_path2}...")
-    model2=UNetAug2D() 
+    print("Loading model 2 from {}...".format(args.model_path2))
+    model2 = UNetAug2D()
     model2.load_state_dict(torch.load((args.model_path2), map_location=torch.device(device)))
     model2 = model2.to(device)
-    print("Evaluation of your first model (Augmented UNET)")
+    print("Evaluation of your second model (Augmented UNET)")
 
     # Define loss function
     if args.criterion == "cross_entropy":
         criterion = nn.CrossEntropyLoss()
 
     # Data loading
-    print(f"Loading data from {args.data_dir}...")
+    print("Loading data from {}...".format(args.data_dir))
 
     # Perform evaluations
     print("Evaluating model...")
-    evaluation(model2, test_loader, criterion, device, num_classes=args.num_classes)
+    evaluation_pixel(model2, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Evaluating with Dice scores...")
     evaluation_with_dice(model2, test_loader, criterion, device, num_classes=args.num_classes)
@@ -639,22 +639,21 @@ if __name__ == "__main__":
 
     print("Displaying predictions for each class...")
     print("Class 1")
-    display_prediction_for_class(model2,test_loader,device,1)
+    display_prediction_for_class(model2, test_loader, device, 1)
     print("Class 2")
-    display_prediction_for_class(model2,test_loader,device,1)
+    display_prediction_for_class(model2, test_loader, device, 2)
     print("Class 3")
-    display_prediction_for_class(model2,test_loader,device,1)
+    display_prediction_for_class(model2, test_loader, device, 3)
     print("Class 4")
-    display_prediction_for_class(model2,test_loader,device,1)
+    display_prediction_for_class(model2, test_loader, device, 4)
 
     print("Displaying Activation Map")
     visualize_attention_with_outlines_and_scales(model2, test_loader, device)
 
-    print("Comparaison between the two models")
+    print("Comparison between the two models")
 
     print("Displaying random predictions of the two models...")
     display_random_prediction_two_models(model, model2, test_loader, device)
 
-    print("Displaying Comparaison between the two models")
-    display_comparison([model,model2], val_loader, device, class_names=None)
-
+    print("Displaying Comparison between the two models")
+    display_comparison([model, model2], val_loader, device, class_names=None)

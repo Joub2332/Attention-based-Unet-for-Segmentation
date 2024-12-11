@@ -72,9 +72,16 @@ def training(model, criterion, optimizer, train_loader, val_loader,device,n_epoc
     return train_losses, valid_losses
 
 if __name__ == "__main__":
-    args = parse_args()
+    parser = argparse.ArgumentParser(description="UNet Model Train Script")
+    parser.add_argument('--data_dir', type=str, required=True, help="Path to the dataset directory.")
+    parser.add_argument('--epochs', type=int, default=50, help="Number of training epochs")
+    parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help="Device to use for evaluation.")
+    parser.add_argument('--num_classes', type=int, default=5, help="Number of classes in the segmentation task.")
+    parser.add_argument('--batch_size', type=int, default=8, help="Batch size for DataLoader.")
+    parser.add_argument('--image_size', type=int, default=128, help="Size to which images should be resized.")
+    parser.add_argument('--criterion', type=str, default="cross_entropy", choices=['cross_entropy'], help="Loss function.")
+    args = parser.parse_args()
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Load the data
     train_loader,test_loader,val_loader = dataLoaderMaking(namefile=args.dataset_path,target_shape = (256, 256),batch_size = args.batch_size)
@@ -83,7 +90,7 @@ if __name__ == "__main__":
     model_class = UNet2d()
     model_augm=UNetAug2D()
 
-    class_weights = torch.tensor([1.04, 30.3, 263.1, 158.7, 270.3]).to(device)  # Move the weights to the same device as the model
+    class_weights = torch.tensor([1.04, 30.3, 263.1, 158.7, 270.3]).to(args.device)  # Move the weights to the same device as the model
 
     # Define the weighted loss
     criterion = nn.CrossEntropyLoss(weight=class_weights)
@@ -93,8 +100,6 @@ if __name__ == "__main__":
     optimizer_augm = torch.optim.Adam(model_augm.parameters(), lr=0.00005)
 
     # Train the model
-    train_losses_class, valid_losses_class = training(model_class, criterion, optimizer_class, train_loader, val_loader,device,args.epochs,"model_classique.pt")
-    train_losses_augm, valid_losses_caugm = training(model_augm, criterion, optimizer_augm, train_loader, val_loader,device,args.epochs,"model_augmenté.pt")
+    train_losses_class, valid_losses_class = training(model_class, criterion, optimizer_class, train_loader, val_loader,args.device,args.epochs,"modelUnetClassque.pt")
+    train_losses_augm, valid_losses_caugm = training(model_augm, criterion, optimizer_augm, train_loader, val_loader,args.device,args.epochs,"modelUnetAugmented.pt")
     
-    # We can add lines of code if we want to use train and valid losses 
-
