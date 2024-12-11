@@ -41,6 +41,21 @@ class LazyNii2DDataset(Dataset):
         return resized_tensor.squeeze()  # Remove the batch dimension
 
 def dataLoaderMaking(namefile='CHAOS-MRT2-2D-NORMALIZED',target_shape = (256, 256),batch_size = 8):
+    """
+    Creates DataLoaders for training, validation, and testing from a given dataset directory. The data 
+    is split into train, validation, and test sets, and corresponding DataLoaders are created for each set.
+
+    Args:
+        namefile (str): Directory containing the 2D source and mask `.nii.gz` files.
+        target_shape (tuple): Target shape for resizing images and masks. Default is (256, 256).
+        batch_size (int): Batch size for DataLoader. Default is 8.
+
+    Returns:
+        tuple: A tuple containing three DataLoaders:
+            - train_loader (torch.utils.data.DataLoader): DataLoader for the training dataset.
+            - val_loader (torch.utils.data.DataLoader): DataLoader for the validation dataset.
+            - test_loader (torch.utils.data.DataLoader): DataLoader for the testing dataset.
+    """
     # Path to the folder containing the created 2D files
     chaos_dir = namefile
 
@@ -75,6 +90,27 @@ def dataLoaderMaking(namefile='CHAOS-MRT2-2D-NORMALIZED',target_shape = (256, 25
 
     # Function to gather files based on keys
     def get_files_from_keys(keys, grouped_files):
+        """
+        Prepares DataLoaders for training, validation, and testing by selecting files based on provided keys,
+        creating datasets, and initializing DataLoaders.
+
+        Args:
+            keys (list): A list of keys corresponding to groups of source and mask file paths.
+            grouped_files (dict): A dictionary where each key maps to a dictionary containing:
+                - 'src' (list): Paths to source image files.
+                - 'mask' (list): Paths to corresponding mask files.
+            train_keys (list): Keys for selecting files for the training dataset.
+            val_keys (list): Keys for selecting files for the validation dataset.
+            test_keys (list): Keys for selecting files for the testing dataset.
+            target_shape (tuple): Target shape to which all images and masks will be resized.
+            batch_size (int): The batch size for the DataLoaders.
+
+        Returns:
+            tuple: A tuple containing three DataLoaders:
+                - train_loader (torch.utils.data.DataLoader): DataLoader for the training dataset.
+                - val_loader (torch.utils.data.DataLoader): DataLoader for the validation dataset.
+                - test_loader (torch.utils.data.DataLoader): DataLoader for the testing dataset.
+        """
         src_files = []
         mask_files = []
         for key in keys:

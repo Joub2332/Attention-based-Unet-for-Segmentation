@@ -18,7 +18,6 @@ To install the dependencies, run:
 pip install -r requirements.txt
 ```
 
-
 ## U-Net architecture overview
 U-Net is a convolutional neural network designed for **image segmentation**, especially in medical imaging. Its architecture is based on a **symmetric encoder-decoder structure**, with **skip connections** that link the encoder and decoder, helping the model retain both high-level features and fine-grained spatial information.
 
@@ -62,7 +61,7 @@ This model was trained on an abdominal image database which can be found [here](
 To train both of the models (classic U-Net and attention U-Net) with a custom dataset, use the following script:
 
 ```
-python train.py --dataset_path path_of_your_prepared_dataset_folder --epochs 50 --batch_size 8 --device ("cpu" or "cuda")
+python train.py --dataset_path path_of_your_dataset_folder --epochs 50 --batch_size 8 --device ("cpu" or "cuda")
 ```
 #### Loss function
 In order to understand our model, we have to establish the loss functions for both models.
@@ -85,15 +84,15 @@ The training loss is well controlled, but the validation loss shows some signs o
 ### Evaluation
 To evaluate the model on a dataset, use the following script:
 ```
-python evaluation.py --model_path path_of_your_UNET_model's_.pt_file --model_path2 path_of_your_attention_UNET_model's_.pt_file --data_dir path_of_your_dataset's_folder --device ("cpu" or "cuda") --num_classes 5 --batch_size 8
+python evaluation.py --model_path path_of_your_classic_model's_.pt_file --model_path2 path_of_your_attention_model's_.pt_file --data_dir path_of_your_dataset_folder --device ("cpu" or "cuda") --num_classes 5 --batch_size 8
 ```
 the path of your dataset's folder has to be the path of your prepared dataset' folder in the case the CHAOS MRT2 Normalized 2D folder.
 
 ### Run it all
-To run the whole project as a whole, you have two options.
-1. if you have already trained the models, run the following code in your terminal:
+To run the whole project as a whole, you have two options:
+1. If you have already trained the models, run the following code in your terminal:
 ```
-python main.py --data_sir path_of_your_prepared_dataset_folder --load_classic path_of_your_classic_model's_.pt_file --load_aug  path_of_your_attention_model's_.pt_file --device ("cpu" or "cuda")
+python main.py --data_sir path_of_your_dataset_folder --load_classic path_of_your_classic_model's_.pt_file --load_aug  path_of_your_attention_model's_.pt_file --device ("cpu" or "cuda")
 ```
 
 2. Else, run the following code in your terminal:
@@ -102,7 +101,8 @@ python main.py --dataset_path ./data --train --epochs 50 --batch_size 8 --device
 ```
 
 ## Results
-The performance of the Attention-based U-Net was compared to the standard U-Net version, showing a significant improvement in precision and recall metrics. Here is a table comparing the dice score of the two structures:
+The performance of the Attention-based U-Net was compared to the standard U-Net version, showing a significant improvement in precision and recall metrics.  
+Here is a table comparing the dice score of the two structures:
 
 | Structure         | Class 0 (Background)  | Class 1 (Liver)  | Class 2 (Right Kidney)  | Class 3 (Left Kidney)  | Class 4 (Spleen)  | Overall Dice Score |
 | ----------------- | -------- | -------- | -------- | -------- | -------- | ------------------ |
@@ -116,13 +116,13 @@ Here is some results of the both models:
 
 Moreover, here are predictions by organs for the unet model with attention gate: 
 
-The Liver:
+The liver:
 ![Liver](Pictures/class1Predictions.png)
-The Right Kidney: 
+The right kidney: 
 ![Right_kidney](Pictures/class2Predictions.png)
-The Left Kidney: 
+The left kidney: 
 ![left_kidney](Pictures/class3Predictions.png)
-The Spleen: 
+The spleen: 
 ![spleen](Pictures/class4Predictions.png)
 
 Finally we can visualize the attention map at the output of the attention gates for the attention trained U-Net:
