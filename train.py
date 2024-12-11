@@ -19,6 +19,24 @@ def parse_args():
 
 # Modified training function
 def training(model, criterion, optimizer, train_loader, val_loader,device,n_epochs,nameFile):
+    """
+    Trains and validates a model over multiple epochs, saving the model if the validation loss decreases.
+
+    Args:
+        model (torch.nn.Module): The neural network model to train.
+        criterion (torch.nn.Module): The loss function to use for training.
+        optimizer (torch.optim.Optimizer): The optimizer used to update the model parameters.
+        train_loader (torch.utils.data.DataLoader): The DataLoader for the training dataset.
+        val_loader (torch.utils.data.DataLoader): The DataLoader for the validation dataset.
+        device (torch.device): The device to use for training (CPU or CUDA).
+        n_epochs (int): The number of epochs to train the model.
+        nameFile (str): The file name to save the best model.
+
+    Returns:
+        tuple: A tuple containing two lists:
+            - train_losses (list): The average training loss for each epoch.
+            - valid_losses (list): The average validation loss for each epoch.
+    """
     numberSamples = len(train_loader.dataset)
     train_losses, valid_losses = [], []
     valid_loss_min = np.inf

@@ -107,7 +107,7 @@ class AttentionBlock2D(nn.Module):
         psi = self.psi(psi)
         attentionMap=None
         if return_attention:
-            attentionMap= psi  # Renvoie la carte d'attention
+            attentionMap = psi  # Return the attention map
         
         out = skip_connection * psi
         return out,attentionMap
@@ -166,7 +166,7 @@ class UNetAug2D(nn.Module):
 
     
     def forward(self, x, return_attention=False):
-        attention_maps = []  # Liste pour stocker les cartes d'attention
+        attention_maps = []  # List to store attention maps
         
         enc1 = self.enc1(x)
         enc2 = self.enc2(self.MaxPool(enc1))
@@ -203,7 +203,7 @@ class UNetAug2D(nn.Module):
         dec2 = self.conv2(dec2)
 
         if return_attention:
-            return self.final_conv(dec2), attention_maps  # Renvoie la sortie + cartes d'attention
+            self.final_conv(dec2), attention_maps  # Return the output + attention maps
         
         return self.final_conv(dec2)
 

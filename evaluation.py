@@ -14,6 +14,22 @@ from model import UNetAug2D
 
 
 def evaluation_pixel(model, val_loader, criterion, device, num_classes=5):
+    """
+    Evaluates the model's performance on a validation set using pixel-wise accuracy and loss.
+
+    Args:
+        model: The trained model to evaluate.
+        val_loader: DataLoader for the validation set.
+        criterion: Loss function used for evaluation (e.g., CrossEntropyLoss).
+        device: Device to use for computation (e.g., 'cuda' or 'cpu').
+        num_classes: The number of classes in the classification task, default is 5.
+
+    Returns:
+        val_loss: The average validation loss over the entire dataset.
+        overall_accuracy: The overall pixel-wise accuracy across all classes.
+        class_correct: List of correct pixel counts for each class.
+        class_total: List of total pixel counts for each class.
+    """
     val_loss = 0.0
     class_correct = [0] * num_classes
     class_total = [0] * num_classes
@@ -43,7 +59,7 @@ def evaluation_pixel(model, val_loader, criterion, device, num_classes=5):
     val_loss /= len(val_loader.dataset)
 
     # Display class-wise accuracies
-    print('Validation Loss: {:.6f}'.format(val_loss))
+    print('Validation loss: {:.6f}'.format(val_loss))
     for i in range(num_classes):
         if class_total[i] > 0:
             accuracy_class = 100.0 * class_correct[i] / class_total[i]
@@ -61,6 +77,21 @@ def evaluation_pixel(model, val_loader, criterion, device, num_classes=5):
     return val_loss, overall_accuracy, class_correct, class_total
 
 def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
+    """
+    Evaluates the model's performance on a validation set using pixel-wise loss and Dice Score.
+
+    Args:
+        model: The trained model to evaluate.
+        val_loader: DataLoader for the validation set.
+        criterion: Loss function used for evaluation (e.g., CrossEntropyLoss).
+        device: Device to use for computation (e.g., 'cuda' or 'cpu').
+        num_classes: The number of classes in the classification task, default is 5.
+
+    Returns:
+        val_loss: The average validation loss over the entire dataset.
+        global_dice: The overall average Dice score across all classes.
+        dice_scores: List of Dice scores for each class.
+    """
     val_loss = 0.0
     dice_scores = [0.0] * num_classes  # Dice scores per class
     class_total = [0] * num_classes
@@ -97,21 +128,31 @@ def evaluation_with_dice(model, val_loader, criterion, device, num_classes=5):
     val_loss /= len(val_loader.dataset)
 
     # Display Dice scores per class
-    print('Validation Loss: {:.6f}'.format(val_loss))
+    print('Validation loss: {:.6f}'.format(val_loss))
     for i in range(num_classes):
         if class_total[i] > 0:
             average_dice = dice_scores[i] / class_total[i]
-            print('Dice Score for class ' + str(i) + ': ' + str(round(average_dice, 4)))
+            print('Dice score for class ' + str(i) + ': ' + str(round(average_dice, 4)))
         else:
-            print('Dice Score for class'+str(i)+': N/A (no pixels)')
+            print('Dice score for class'+str(i)+': N/A (no pixels)')
 
-    # Calculate the global average Dice Score
+    # Calculate the global average Dice score
     global_dice = sum(dice_scores) / sum(class_total)
-    print('Overall Dice Score: {:.4f}'.format(global_dice))
+    print('Overall Dice score: {:.4f}'.format(global_dice))
 
     return val_loss, global_dice, dice_scores
 
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion Matrix', cmap=plt.cm.Blues):
+    """
+    Plots a confusion matrix with an optional normalization option.
+
+    Args:
+        cm: Confusion matrix to plot, typically a 2D numpy array.
+        classes: List of class names corresponding to the matrix indices.
+        normalize: Boolean flag indicating whether to normalize the confusion matrix (default is False).
+        title: Title for the plot (default is 'Confusion Matrix').
+        cmap: Colormap to use for the plot (default is plt.cm.Blues).
+    """
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")
@@ -133,10 +174,19 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion Matrix'
                  color="white" if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
-    plt.ylabel('True Label')
-    plt.xlabel('Predicted Label')
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
 
 def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
+    """
+    Evaluates the model's performance on the validation set and displays the confusion matrix.
+
+    Args:
+        model: The trained model to evaluate.
+        val_loader: DataLoader for the validation set.
+        device: Device to use for computation (e.g., 'cuda' or 'cpu').
+        num_classes: The number of classes in the classification task, default is 5.
+    """
     y_true = []
     y_pred = []
 
@@ -146,11 +196,11 @@ def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
             data = data.to(device)
             mask = mask.squeeze(1).to(device).long()  # Explicit conversion to integers
 
-            # Prédictions du modèle
+            # Model predictions
             output = model(data)
             predicted_classes = torch.argmax(output, dim=1).long()  # Explicit conversion to integers
 
-            # Collecter les valeurs réelles et prédites
+            # Collect true and predicted values
             y_true.extend(mask.cpu().numpy().flatten().astype(int))  # Explicit conversion to integers
             y_pred.extend(predicted_classes.cpu().numpy().flatten().astype(int))  # Explicit conversion to integers
 
@@ -162,43 +212,51 @@ def evaluate_confusion_matrix(model, val_loader, device, num_classes=5):
     plt.show()
 
 def display_random_prediction(model, val_loader, device):
-    # Mettre le modèle en mode évaluation
+    """
+    Displays a random image from the validation set along with the ground truth and predicted contours.
+
+    Args:
+        model: The trained model to make predictions.
+        val_loader: DataLoader for the validation set.
+        device: Device to use for computation (e.g., 'cuda' or 'cpu').
+    """
+    # Set the model to evaluation mode
     model.eval()
 
-    # Sélectionner un batch aléatoire du valid loader
+    # Select a random batch from the validation loader
     data_iter = iter(val_loader)
     random_index = random.randint(0, len(val_loader) - 1)
 
     for _ in range(random_index):
-        next(data_iter)  # Ignorer jusqu'à l'index aléatoire
+        next(data_iter)  # Skip to the random index
 
-    # Récupérer un batch de données
+    # Retrieve a batch of data
     data, mask = next(data_iter)
     data = data.to(device, dtype=torch.float32)
     mask = mask.squeeze(1).to(device, dtype=torch.long)
 
-    # Faire des prédictions
+    # Make predictions
     with torch.no_grad():
         prediction = model(data)
         predicted_classes = torch.argmax(prediction, dim=1)
 
-    # Choisir une image aléatoire dans le batch
+    # Choose a random image from the batch
     random_image_index = random.randint(0, data.size(0) - 1)
     data_image = data[random_image_index].cpu().squeeze(0).numpy()
     mask_image = mask[random_image_index].cpu().numpy()
     predicted_image = predicted_classes[random_image_index].cpu().numpy()
 
-    # Normalisation de l'image source pour affichage
+    # Normalize the input image for display
     data_image = (data_image - data_image.min()) / (data_image.max() - data_image.min())
 
-    # Ajouter les contours à l'image source
-    image_with_contours = mark_boundaries(data_image, mask_image, color=(0, 1, 0))  # Contours verts (vérité terrain)
-    image_with_contours = mark_boundaries(image_with_contours, predicted_image, color=(1, 0, 0))  # Contours rouges (prédictions)
+    # Add contours to the input image
+    image_with_contours = mark_boundaries(data_image, mask_image, color=(0, 1, 0))  # Green contours (ground truth)
+    image_with_contours = mark_boundaries(image_with_contours, predicted_image, color=(1, 0, 0))  # Red contours (predictions)
 
-    # Afficher l'image avec les contours
+    # Display the image with contours
     plt.figure(figsize=(8, 8))
     plt.imshow(image_with_contours)
-    plt.title('Contours Vrais (Vert) et Prédits (Rouge)')
+    plt.title('True contours (green) and predicted contours (red)')
     plt.axis('off')
     plt.show()
 
@@ -250,16 +308,16 @@ def display_comparison(models, val_loader, device, class_names=None):
     # Plot the input image
     plt.subplot(1, len(models) + 2, 1)
     plt.imshow(data_image, cmap='gray')
-    plt.title('Input Image')
+    plt.title('Input image')
     plt.axis('off')
 
     # Plot the ground truth mask
     plt.subplot(1, len(models) + 2, 2)
     plt.imshow(mask_image, cmap='viridis')
     if class_names:
-        plt.title('Ground Truth')
+        plt.title('Ground truth')
     else:
-        plt.title('Ground Truth Mask')
+        plt.title('Ground truth mask')
     plt.axis('off')
 
     # Plot predictions for each model
@@ -338,19 +396,19 @@ def display_prediction_for_class(model, val_loader, device, target_class):
     # Plot the original image with contours
     plt.subplot(2, 2, 1)
     plt.imshow(image_with_contours)
-    plt.title('Class ' + str(target_class) + ': True contours (green) and Predicted contours (red)')
+    plt.title('Class ' + str(target_class) + ': True contours (green) and predicted contours (red)')
     plt.axis('off')
 
     # Plot the full ground truth mask for the target class
     plt.subplot(2, 2, 2)
     plt.imshow(full_mask, cmap='gray')
-    plt.title('Ground Truth Mask for Class ' + str(target_class))
+    plt.title('Ground truth mask for class ' + str(target_class))
     plt.axis('off')
 
     # Plot the full predicted mask for the target class
     plt.subplot(2, 2, 3)
     plt.imshow(full_pred_mask, cmap='gray')
-    plt.title('Predicted Mask for Class'+ str(target_class))
+    plt.title('Predicted mask for class'+ str(target_class))
     plt.axis('off')
 
     plt.tight_layout()
@@ -358,98 +416,99 @@ def display_prediction_for_class(model, val_loader, device, target_class):
 
 def visualize_attention_with_outlines_and_scales(model, data_loader, device):
     """
-    Affiche les cartes d'attention superposées à l'image source avec les organes détourés,
-    et inclut une barre d'échelle pour chaque carte d'attention. Les images sont alignées horizontalement.
-    La première image affiche aussi la prédiction du modèle en contours bleus.
+    Displays attention maps overlaid on the source image with outlined organs,
+    and includes a scale bar for each attention map. The images are aligned horizontally.
+    The first image also shows the model's prediction in blue contours.
+
     Args:
-        model: Le modèle PyTorch générant les cartes d'attention.
-        data_loader: DataLoader contenant les données (images et masques de labels).
-        device: Périphérique ('cuda' ou 'cpu').
+        model: The PyTorch model generating the attention maps.
+        data_loader: DataLoader containing the data (images and label masks).
+        device: Device ('cuda' or 'cpu').
     """
-    # Mettre le modèle en mode évaluation
+    # Set the model to evaluation mode
     model.eval()
 
-    # Récupérer un batch de données du DataLoader
+    # Retrieve a batch of data from the DataLoader
     data_iter = iter(data_loader)
     random_index = random.randint(0, len(data_loader) - 1)
     for _ in range(random_index):
-        next(data_iter)  # Ignorer jusqu'à l'index aléatoire
+        next(data_iter)  # Skip to the random index
 
     input_tensor, labels = next(data_iter)
     input_tensor = input_tensor.to(device, dtype=torch.float32)
-    labels = labels.squeeze(1).to(device, dtype=torch.long)  # Assurez-vous que les labels sont au bon format
+    labels = labels.squeeze(1).to(device, dtype=torch.long)  # Ensure labels are in the correct format
 
-    # Passage des données dans le modèle pour générer les cartes d'attention
+    # Pass the data through the model to generate attention maps
     with torch.no_grad():
         output, attention_maps = model(input_tensor, return_attention=True)
         predicted_classes = torch.argmax(output, dim=1)
 
-    # Affichage pour la première image du batch (index 0)
+    # Display for the first image in the batch (index 0)
     image_index = 0
     original_image = input_tensor[image_index].cpu().squeeze(0).numpy()
     label_image = labels[image_index].cpu().numpy()
     predicted_image = predicted_classes[image_index].cpu().numpy()
 
-    # Ajouter les contours des labels et des prédictions
+    # Add contours for labels and predictions
     image_with_labels = mark_boundaries(original_image, label_image, color=(1, 1, 0))  # Contours jaunes
     image_with_predictions = mark_boundaries(image_with_labels, predicted_image, color=(0, 0, 1))  # Contours bleus
 
-    # Créer une figure pour aligner les images horizontalement
+    # Create a figure to align images horizontally
     num_attention_maps = len(attention_maps)
     fig, axes = plt.subplots(1, num_attention_maps + 1, figsize=(20, 5))
 
-    # Afficher l'image originale avec les labels et la prédiction
+    # Display the original image with labels and prediction
     axes[0].imshow(image_with_predictions, cmap='gray')
-    axes[0].set_title('Image, Labels (Yellow) and Prediction (Blue)')
+    axes[0].set_title('Image, labels (yellow) and prediction (blue)')
     axes[0].axis('off')
 
-    # Afficher les cartes d'attention
+    # Display the attention maps
     for i, attention_map in enumerate(attention_maps):
-        # Normaliser la carte d'attention
+        # Normalize the attention map
         att_map = attention_map[image_index].squeeze(0).cpu().numpy()
         att_map = (att_map - att_map.min()) / (att_map.max() - att_map.min())
 
-        # Ajouter l'image originale et la carte d'attention
-        im = axes[i + 1].imshow(att_map, cmap='jet')  # Superposition de la carte d'attention
+        # Add the original image and the attention map
+        im = axes[i + 1].imshow(att_map, cmap='jet')  # Overlay the attention map
 
-        # Ajouter une barre d'échelle (légende)
+        # Add a scale bar (legend)
         cbar = plt.colorbar(im, ax=axes[i + 1], fraction=0.046, pad=0.04)
-        cbar.set_label('Visualisation of the Attention', rotation=270, labelpad=15)
+        cbar.set_label('Visualization of the attention', rotation=270, labelpad=15)
 
-        axes[i + 1].set_title('Attention Map ' + str(i + 1))
+        axes[i + 1].set_title('Attention map ' + str(i + 1))
         axes[i + 1].axis('off')
 
-    # Réglage de la mise en page
-    plt.subplots_adjust(wspace=0.2)  # Réduction de l'espace entre les images
+    # Adjust layout
+    plt.subplots_adjust(wspace=0.2)  # Reduce space between images
     plt.tight_layout()
     plt.show()
 
 def display_random_prediction_two_models(model1, model2, val_loader, device):
     """
-    Affiche une prédiction aléatoire comparant deux modèles sur un batch de validation.
+    Displays a random prediction comparing two models on a validation batch.
+
     Args:
-        model1: Premier modèle PyTorch.
-        model2: Deuxième modèle PyTorch.
-        val_loader: DataLoader contenant les données de validation.
-        device: Périphérique ('cuda' ou 'cpu').
+        model1: First PyTorch model.
+        model2: Second PyTorch model.
+        val_loader: DataLoader containing validation data.
+        device: Device ('cuda' or 'cpu').
     """
-    # Mettre les modèles en mode évaluation
+    # Set models to evaluation mode
     model1.eval()
     model2.eval()
 
-    # Sélectionner un batch aléatoire du valid loader
+    # Select a random batch from the validation loader
     data_iter = iter(val_loader)
     random_index = random.randint(0, len(val_loader) - 1)
 
     for _ in range(random_index):
-        next(data_iter)  # Ignorer jusqu'à l'index aléatoire
-
-    # Récupérer un batch de données
+        next(data_iter)  # Skip to the random index
+    # Retrieve a batch of data
     data, mask = next(data_iter)
     data = data.to(device, dtype=torch.float32)
     mask = mask.squeeze(1).to(device, dtype=torch.long)
 
-    # Faire des prédictions pour les deux modèles
+    # Make predictions for both models
     with torch.no_grad():
         prediction1 = model1(data)
         predicted_classes1 = torch.argmax(prediction1, dim=1)
@@ -457,25 +516,25 @@ def display_random_prediction_two_models(model1, model2, val_loader, device):
         prediction2 = model2(data)
         predicted_classes2 = torch.argmax(prediction2, dim=1)
 
-    # Choisir une image aléatoire dans le batch
+    # Choose a random image from the batch
     random_image_index = random.randint(0, data.size(0) - 1)
     data_image = data[random_image_index].cpu().squeeze(0).numpy()
     mask_image = mask[random_image_index].cpu().numpy()
     predicted_image1 = predicted_classes1[random_image_index].cpu().numpy()
     predicted_image2 = predicted_classes2[random_image_index].cpu().numpy()
 
-    # Normalisation de l'image source pour affichage
+    # Normalize the input image for display
     data_image = (data_image - data_image.min()) / (data_image.max() - data_image.min())
 
-    # Ajouter les contours à l'image source
-    image_with_contours = mark_boundaries(data_image, mask_image, color=(0, 1, 0))  # Contours verts (vérité terrain)
-    image_with_contours = mark_boundaries(image_with_contours, predicted_image1, color=(0, 0, 1))  # Contours bleus (modèle 1)
-    image_with_contours = mark_boundaries(image_with_contours, predicted_image2, color=(1, 0, 0))  # Contours rouges (modèle 2)
+    # Add contours to the input image
+    image_with_contours = mark_boundaries(data_image, mask_image, color=(0, 1, 0))  # Green contours (ground truth)
+    image_with_contours = mark_boundaries(image_with_contours, predicted_image1, color=(0, 0, 1))  # Blue contours (model 1)
+    image_with_contours = mark_boundaries(image_with_contours, predicted_image2, color=(1, 0, 0))  # Red contours (model 2)
 
-    # Afficher l'image avec les contours
+    # Display the image with contours
     plt.figure(figsize=(8, 8))
     plt.imshow(image_with_contours)
-    plt.title('True Mask (Vert),  Classic Unet (Bleu), Augmented Unet (Rouge)')
+    plt.title('True mask (green), Classic U-Net (blue), Attention U-Net (red)')
     plt.axis('off')
     plt.show()
 
@@ -527,23 +586,23 @@ def display_comparison(models, val_loader, device, class_names=None):
     # Plot the input image
     plt.subplot(1, len(models) + 2, 1)
     plt.imshow(data_image, cmap='gray')
-    plt.title('Input Image')
+    plt.title('Input image')
     plt.axis('off')
 
     # Plot the ground truth mask
     plt.subplot(1, len(models) + 2, 2)
     plt.imshow(mask_image, cmap='viridis')
     if class_names:
-        plt.title('Ground Truth')
+        plt.title('Ground truth')
     else:
-        plt.title('Ground Truth Mask')
+        plt.title('Ground truth mask')
     plt.axis('off')
 
     # Plot predictions for each model
     for i, prediction in enumerate(predictions):
         plt.subplot(1, len(models) + 2, i + 3)
         plt.imshow(prediction, cmap='viridis')
-        title = 'Prediction (Model ' + str(i + 1) + ')'
+        title = 'Prediction (model ' + str(i + 1) + ')'
         if class_names:
             title += '\n' + str(class_names)
         plt.title(title)
@@ -552,7 +611,7 @@ def display_comparison(models, val_loader, device, class_names=None):
     plt.tight_layout()
     plt.show()
 
-# Faire une fonctionn pour plot les deux models sur un meme masque et pour comparer
+# Create a function to plot the two models on the same mask and compare
 if __name__ == "__main__":
     import argparse
 
@@ -571,7 +630,7 @@ if __name__ == "__main__":
     # Device configuration
     device = torch.device(args.device)
 
-        # Data loading
+    # Data loading
     print("Loading data from {}...".format(args.data_dir))
     # Create dataset and DataLoader
     train_loader, test_loader, val_loader = dataLoaderMaking(namefile=args.data_dir, target_shape=(256, 256), batch_size=args.batch_size)
@@ -581,7 +640,7 @@ if __name__ == "__main__":
     model = UNet2d()
     model.load_state_dict(torch.load(args.model_path, map_location=torch.device(device)))
     model = model.to(device)
-    print("Evaluation of your first model (Classic UNET)")
+    print("Evaluation of your first model (Classic U-Net)")
 
     # Define loss function
     if args.criterion == "cross_entropy":
@@ -591,7 +650,7 @@ if __name__ == "__main__":
     print("Evaluating model...")
     evaluation_pixel(model, test_loader, criterion, device, num_classes=args.num_classes)
 
-    print("Evaluating with Dice scores...")
+    print("Evaluating with Dice score...")
     # evaluation_with_dice(model, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Generating confusion matrix...")
@@ -615,7 +674,7 @@ if __name__ == "__main__":
     model2 = UNetAug2D()
     model2.load_state_dict(torch.load((args.model_path2), map_location=torch.device(device)))
     model2 = model2.to(device)
-    print("Evaluation of your second model (Augmented UNET)")
+    print("Evaluation of your second model (Attention U-Net)")
 
     # Define loss function
     if args.criterion == "cross_entropy":
@@ -628,7 +687,7 @@ if __name__ == "__main__":
     print("Evaluating model...")
     evaluation_pixel(model2, test_loader, criterion, device, num_classes=args.num_classes)
 
-    print("Evaluating with Dice scores...")
+    print("Evaluating with Dice score...")
     evaluation_with_dice(model2, test_loader, criterion, device, num_classes=args.num_classes)
 
     print("Generating confusion matrix...")
@@ -647,7 +706,7 @@ if __name__ == "__main__":
     print("Class 4")
     display_prediction_for_class(model2, test_loader, device, 4)
 
-    print("Displaying Activation Map")
+    print("Displaying activation map")
     visualize_attention_with_outlines_and_scales(model2, test_loader, device)
 
     print("Comparison between the two models")
@@ -655,5 +714,5 @@ if __name__ == "__main__":
     print("Displaying random predictions of the two models...")
     display_random_prediction_two_models(model, model2, test_loader, device)
 
-    print("Displaying Comparison between the two models")
+    print("Displaying comparison between the two models")
     display_comparison([model, model2], val_loader, device, class_names=None)

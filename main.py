@@ -4,13 +4,13 @@ import torch
 import subprocess
 import sys
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train or Evaluate U-Net Models")
+    parser = argparse.ArgumentParser(description="Train or Evaluate U-Net models")
     parser.add_argument('--data_dir', type=str, required=True, help="Path to the dataset")
     parser.add_argument('--train', action='store_true', help="Specify to train models")
     parser.add_argument('--epochs', type=int, default=50, help="Number of training epochs")
     parser.add_argument('--batch_size', type=int, default=16, help="Batch size")
     parser.add_argument('--load_classic', type=str, default=None, help="Path to classic U-Net model")
-    parser.add_argument('--load_aug', type=str, default=None, help="Path to augmented U-Net model")
+    parser.add_argument('--load_aug', type=str, default=None, help="Path to attention U-Net model")
     parser.add_argument('--device', type=str, choices=['cuda', 'cpu'], default='cuda', help="Device to use (default: cuda)")
     args = parser.parse_args()
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         if result1.stderr:
             print("Error output:", result1.stderr)
         
-    #Evaluation of the models
+    # Evaluation of the models
     args_eval = [ 
             python_exe, 'evaluation.py', 
             '--model_path', str(args.load_classic),
