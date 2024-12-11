@@ -62,7 +62,7 @@ This model was trained on an abdominal image database which can be found [here](
 To train both of the models (classic U-Net and augmented U-Net) with a custom dataset, use the following script:
 
 ```
-python scripts/train.py --dataset_path ./data/train --epochs 50 --batch_size 8
+python train.py --dataset_path path_of_your_prepared_dataset_folder --epochs 50 --batch_size 8 --device ("cpu" or "cuda")
 ```
 #### Loss function
 In order to understand our model, we have to establish the loss functions for both models.
