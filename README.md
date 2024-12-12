@@ -52,33 +52,33 @@ The **Attention-based U-Net** enhances the traditional U-Net architecture by inc
 
 ## Usage
 ### Preparation 
-In order to prepare the dataset, plese upload the [CHAOS-MRT2](https://chaos.grand-challenge.org/Data/) dataset in the same folder as the dataPrepare.ipynb file.
+In order to prepare the dataset, please upload the [CHAOS-MRT2](https://chaos.grand-challenge.org/Data/) dataset in the same folder as the dataPrepare.ipynb file.
 Then, run the dataPrepare.ipynb file.
 
 ### Training 
-This model was trained on an abdominal image database which can be found [here](https://chaos.grand-challenge.org/Data/). However, this model can be trained on another medical or other imaging dataset.
+This model was trained on an abdominal image database which can be found [here](https://chaos.grand-challenge.org/Data/). However, this model can be trained on another medical or imaging dataset.
 
-To train both of the models (classic U-Net and attention U-Net) with a custom dataset, use the following script:
+To train both models (classic U-Net and attention U-Net) with a custom dataset, use the following script:
 
 ```
 python train.py --dataset_path path_of_your_dataset_folder --epochs 50 --batch_size 8 --device ("cpu" or "cuda")
 ```
 #### Loss function
-In order to understand our model, we have to establish the loss functions for both models.
+In order to understand our model, we have to establish the loss function and optimizer for each model. In this case, both models were trained using the Adam optimizer and cross-entropy loss, with a batch size of 8.
 
-For the first model we get this loss function: 
+For the first model we get this loss function:
 
 ![U-Net loss function](Pictures/loss_functions_classic_unet.png)
 
-According to this graph, the training loss steadily decreases, indicating that the model is learning to better fit the training data.
-The validation loss follows a similar trend at the beginning, with larger oscillations as the epochs progress.
+According to this graph, the training loss(blue) steadily decreases, indicating that the model is learning to better fit the training data.
+The validation loss(orange) follows a similar trend at the beginning, with larger oscillations as the epochs progress.
 From a certain point (around 20 to 30 epochs), the validation and training loss stabilizes around a low value, showing that the model reaches convergence.
 Overall, this graph shows good behavior with training and validation loss decreasing, indicating that the model is learning efficiently without obvious overtraining.
 
-For the second model we get this loss function: 
+For the second model we get this loss function:
 ![U-Net Augmented loss function](Pictures/loss_function_augmented.png)
-According to this graph, the training curve (blue) shows a gradual decrease in loss, which is expected when the model learns on the training data.
-The validation curve (orange) is more unstable, with several sudden peaks and large oscillations but still converges.
+According to this graph, the training curve(blue) shows a gradual decrease in loss, which is expected when the model learns on the training data.
+The validation curve(orange) is more unstable, with several sudden peaks and large oscillations but still converges.
 The training loss is well controlled, but the validation loss shows some signs of variability.
 
 ### Evaluation
@@ -86,7 +86,7 @@ To evaluate the model on a dataset, use the following script:
 ```
 python evaluation.py --model_path path_of_your_classic_model's_.pt_file --model_path2 path_of_your_attention_model's_.pt_file --data_dir path_of_your_dataset_folder --device ("cpu" or "cuda") --num_classes 5 --batch_size 8
 ```
-the path of your dataset's folder has to be the path of your prepared dataset' folder in the case the CHAOS MRT2 Normalized 2D folder.
+the path of your dataset's folder has to be the path of your prepared dataset' folder in the case the 'CHAOS-MRT2-2D-NORMALIZED' folder.
 
 ### Run it all
 To run the whole project as a whole, you have two options:
@@ -109,12 +109,12 @@ Here is a table comparing the dice score of the two structures:
 | U-Net              | 0.9904   | 0.7217   | 0.5004   | 0.3693   | 0.4606   | 0.6118             |
 | Attention U-Net    |  0.9908 | 0.8290 | 0.6133 | 0.6318 | 0.7015 | 0.7533 |
 
-Here is some results of the both models: 
+Here are some results for both models: 
 ![Both_predicitons](Pictures/Comparaison_modelsoutput.png)
 
 ![Both_predicitons_bis](Pictures/two_predictions.png)
 
-Moreover, here are predictions by organs for the unet model with attention gate: 
+Moreover, here are predictions by organs for the U-Net model with attention gates: 
 
 The liver:
 ![Liver](Pictures/class1Predictions.png)
